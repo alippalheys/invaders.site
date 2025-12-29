@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCallback } from 'react';
 import createContextHook from '@nkzw/create-context-hook';
+import { trpc } from '@/lib/trpc';
 
 export interface MerchItem {
   id: string;
@@ -39,121 +39,98 @@ const DEFAULT_HEROES: Hero[] = [
   { id: '12', name: 'Hussain Rasheed', position: 'Substitute', number: '12', image: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=200&h=200&fit=crop&crop=face' },
 ];
 
-const MERCH_STORAGE_KEY = '@club_invaders_merch';
-const HEROES_STORAGE_KEY = '@club_invaders_heroes';
-
 export const [AppContentProvider, useAppContent] = createContextHook(() => {
-  const [merchItems, setMerchItems] = useState<MerchItem[]>(DEFAULT_MERCH);
-  const [heroes, setHeroes] = useState<Hero[]>(DEFAULT_HEROES);
-  const [isLoading, setIsLoading] = useState(true);
+  const utils = trpc.useUtils();
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const merchQuery = trpc.merch.getAll.useQuery(undefined, {
+    staleTime: 1000 * 60 * 5,
+  });
 
-  const loadData = async () => {
-    try {
-      const [merchData, heroesData] = await Promise.all([
-        AsyncStorage.getItem(MERCH_STORAGE_KEY),
-        AsyncStorage.getItem(HEROES_STORAGE_KEY),
-      ]);
-      
-      if (merchData) {
-        setMerchItems(JSON.parse(merchData));
-      }
-      if (heroesData) {
-        setHeroes(JSON.parse(heroesData));
-      }
-    } catch (error) {
-      console.log('Error loading app content:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const heroesQuery = trpc.heroes.getAll.useQuery(undefined, {
+    staleTime: 1000 * 60 * 5,
+  });
 
-  const saveMerch = async (items: MerchItem[]) => {
-    try {
-      await AsyncStorage.setItem(MERCH_STORAGE_KEY, JSON.stringify(items));
-    } catch (error) {
-      console.log('Error saving merch:', error);
-    }
-  };
+  const createMerchMutation = trpc.merch.create.useMutation({
+    onSuccess: () => {
+      utils.merch.getAll.invalidate();
+    },
+  });
 
-  const saveHeroes = async (items: Hero[]) => {
-    try {
-      await AsyncStorage.setItem(HEROES_STORAGE_KEY, JSON.stringify(items));
-    } catch (error) {
-      console.log('Error saving heroes:', error);
-    }
-  };
+  const updateMerchMutation = trpc.merch.update.useMutation({
+    onSuccess: () => {
+      utils.merch.getAll.invalidate();
+    },
+  });
+
+  const deleteMerchMutation = trpc.merch.delete.useMutation({
+    onSuccess: () => {
+      utils.merch.getAll.invalidate();
+    },
+  });
+
+  const createHeroMutation = trpc.heroes.create.useMutation({
+    onSuccess: () => {
+      utils.heroes.getAll.invalidate();
+    },
+  });
+
+  const updateHeroMutation = trpc.heroes.update.useMutation({
+    onSuccess: () => {
+      utils.heroes.getAll.invalidate();
+    },
+  });
+
+  const deleteHeroMutation = trpc.heroes.delete.useMutation({
+    onSuccess: () => {
+      utils.heroes.getAll.invalidate();
+    },
+  });
 
   const addMerchItem = useCallback((item: Omit<MerchItem, 'id'>) => {
-    const newItem: MerchItem = {
-      ...item,
-      id: Date.now().toString(),
-    };
-    const updated = [...merchItems, newItem];
-    setMerchItems(updated);
-    saveMerch(updated);
-  }, [merchItems]);
+    createMerchMutation.mutate(item);
+  }, [createMerchMutation]);
 
   const updateMerchItem = useCallback((id: string, updates: Partial<MerchItem>) => {
-    const updated = merchItems.map((item) =>
-      item.id === id ? { ...item, ...updates } : item
-    );
-    setMerchItems(updated);
-    saveMerch(updated);
-  }, [merchItems]);
+    updateMerchMutation.mutate({ id, ...updates });
+  }, [updateMerchMutation]);
 
   const deleteMerchItem = useCallback((id: string) => {
-    const updated = merchItems.filter((item) => item.id !== id);
-    setMerchItems(updated);
-    saveMerch(updated);
-  }, [merchItems]);
+    deleteMerchMutation.mutate({ id });
+  }, [deleteMerchMutation]);
 
   const addHero = useCallback((hero: Omit<Hero, 'id'>) => {
-    const newHero: Hero = {
-      ...hero,
-      id: Date.now().toString(),
-    };
-    const updated = [...heroes, newHero];
-    setHeroes(updated);
-    saveHeroes(updated);
-  }, [heroes]);
+    createHeroMutation.mutate(hero);
+  }, [createHeroMutation]);
 
   const updateHero = useCallback((id: string, updates: Partial<Hero>) => {
-    const updated = heroes.map((hero) =>
-      hero.id === id ? { ...hero, ...updates } : hero
-    );
-    setHeroes(updated);
-    saveHeroes(updated);
-  }, [heroes]);
+    updateHeroMutation.mutate({ id, ...updates });
+  }, [updateHeroMutation]);
 
   const deleteHero = useCallback((id: string) => {
-    const updated = heroes.filter((hero) => hero.id !== id);
-    setHeroes(updated);
-    saveHeroes(updated);
-  }, [heroes]);
+    deleteHeroMutation.mutate({ id });
+  }, [deleteHeroMutation]);
 
-  const resetToDefaults = useCallback(async () => {
-    setMerchItems(DEFAULT_MERCH);
-    setHeroes(DEFAULT_HEROES);
-    await Promise.all([
-      AsyncStorage.removeItem(MERCH_STORAGE_KEY),
-      AsyncStorage.removeItem(HEROES_STORAGE_KEY),
-    ]);
-  }, []);
+  const merchItems = merchQuery.data && merchQuery.data.length > 0 
+    ? merchQuery.data 
+    : DEFAULT_MERCH;
+
+  const heroes = heroesQuery.data && heroesQuery.data.length > 0 
+    ? heroesQuery.data 
+    : DEFAULT_HEROES;
 
   return {
     merchItems,
     heroes,
-    isLoading,
+    isLoading: merchQuery.isLoading || heroesQuery.isLoading,
     addMerchItem,
     updateMerchItem,
     deleteMerchItem,
     addHero,
     updateHero,
     deleteHero,
-    resetToDefaults,
+    refetch: () => {
+      merchQuery.refetch();
+      heroesQuery.refetch();
+    },
   };
 });

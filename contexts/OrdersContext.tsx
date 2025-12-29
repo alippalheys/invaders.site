@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCallback } from 'react';
 import createContextHook from '@nkzw/create-context-hook';
+import { trpc } from '@/lib/trpc';
 
 export interface Order {
   id: string;
@@ -16,69 +16,72 @@ export interface Order {
   createdAt: string;
 }
 
-const ORDERS_STORAGE_KEY = 'club_invaders_orders';
-
 export const [OrdersProvider, useOrders] = createContextHook(() => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const utils = trpc.useUtils();
+  
+  const ordersQuery = trpc.orders.getAll.useQuery(undefined, {
+    staleTime: 1000 * 60,
+  });
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
+  const createMutation = trpc.orders.create.useMutation({
+    onSuccess: () => {
+      utils.orders.getAll.invalidate();
+    },
+  });
 
-  const loadOrders = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(ORDERS_STORAGE_KEY);
-      if (stored) {
-        setOrders(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.log('Error loading orders:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const updateStatusMutation = trpc.orders.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.orders.getAll.invalidate();
+    },
+  });
 
-  const saveOrders = async (newOrders: Order[]) => {
-    try {
-      await AsyncStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(newOrders));
-    } catch (error) {
-      console.log('Error saving orders:', error);
-    }
-  };
+  const deleteMutation = trpc.orders.delete.useMutation({
+    onSuccess: () => {
+      utils.orders.getAll.invalidate();
+    },
+  });
 
-  const addOrder = (order: Omit<Order, 'id' | 'status' | 'createdAt'>) => {
-    const newOrder: Order = {
-      ...order,
-      id: Date.now().toString(),
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [newOrder, ...orders];
-    setOrders(updated);
-    saveOrders(updated);
-    return newOrder;
-  };
+  const addOrder = useCallback((order: Omit<Order, 'id' | 'status' | 'createdAt'>) => {
+    createMutation.mutate({
+      productName: order.productName,
+      productImage: order.productImage,
+      price: order.price,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      size: order.size,
+      sizeCategory: order.sizeCategory,
+      transferSlipUri: order.transferSlipUri,
+    });
+  }, [createMutation]);
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
-    const updated = orders.map((order) =>
-      order.id === orderId ? { ...order, status } : order
-    );
-    setOrders(updated);
-    saveOrders(updated);
-  };
+  const updateOrderStatus = useCallback((orderId: string, status: Order['status']) => {
+    updateStatusMutation.mutate({ id: orderId, status });
+  }, [updateStatusMutation]);
 
-  const deleteOrder = (orderId: string) => {
-    const updated = orders.filter((order) => order.id !== orderId);
-    setOrders(updated);
-    saveOrders(updated);
-  };
+  const deleteOrder = useCallback((orderId: string) => {
+    deleteMutation.mutate({ id: orderId });
+  }, [deleteMutation]);
+
+  const orders: Order[] = (ordersQuery.data ?? []).map((order) => ({
+    id: order.id,
+    productName: order.productName,
+    productImage: order.productImage,
+    price: order.price,
+    customerName: order.customerName,
+    customerPhone: order.customerPhone,
+    size: order.size,
+    sizeCategory: order.sizeCategory as 'adult' | 'kids',
+    transferSlipUri: order.transferSlipUri,
+    status: order.status as Order['status'],
+    createdAt: order.createdAt,
+  }));
 
   return {
     orders,
-    isLoading,
+    isLoading: ordersQuery.isLoading,
     addOrder,
     updateOrderStatus,
     deleteOrder,
+    refetch: ordersQuery.refetch,
   };
 });
