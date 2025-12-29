@@ -1,0 +1,15 @@
+{
+  "buildCommand": "echo 'Backend only'",
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    }
+  ],
+  "functions": {
+    "backend/hono.ts": {
+      "runtime": "@vercel/node@3.0.0"
+    }
+  }
+}
