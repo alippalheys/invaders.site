@@ -1,6 +1,2 @@
-name = "club-invaders-api"
-compatibility_date = "2024-01-01"
-pages_build_output_dir = "./dist"
-
-[vars]
-# SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY should be set in Cloudflare dashboard
+# wrangler.toml
+name = 'invadersite'
