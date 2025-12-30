@@ -4,22 +4,29 @@ import { supabase } from "../supabase";
 
 export const merchRouter = createTRPCRouter({
   getAll: publicProcedure.query(async () => {
-    const { data, error } = await supabase
-      .from("merch_items")
-      .select("*")
-      .order("created_at", { ascending: true });
+    console.log("[Merch] Fetching all merch items...");
+    try {
+      const { data, error } = await supabase
+        .from("merch_items")
+        .select("*")
+        .order("created_at", { ascending: true });
 
-    if (error) {
-      console.log("Error fetching merch items:", error);
-      throw new Error(error.message);
+      if (error) {
+        console.error("[Merch] Error fetching items:", error.message, error.code);
+        throw new Error(`Failed to fetch merch items: ${error.message}`);
+      }
+
+      console.log("[Merch] Successfully fetched", data?.length ?? 0, "items");
+      return (data ?? []).map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+      }));
+    } catch (err) {
+      console.error("[Merch] Unexpected error:", err);
+      throw err;
     }
-
-    return data.map((item) => ({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      image: item.image,
-    }));
   }),
 
   create: publicProcedure

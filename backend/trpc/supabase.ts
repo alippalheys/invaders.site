@@ -13,11 +13,12 @@ function getSupabaseClient(): SupabaseClient {
   console.log("[Supabase] Initializing client...", {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseServiceKey,
+    urlPrefix: supabaseUrl?.substring(0, 20),
   });
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error("[Supabase] Missing env vars");
-    throw new Error("Missing Supabase configuration");
+    console.error("[Supabase] Missing env vars - SUPABASE_URL:", !!supabaseUrl, "SUPABASE_SERVICE_ROLE_KEY:", !!supabaseServiceKey);
+    throw new Error("Missing Supabase configuration. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.");
   }
 
   supabaseInstance = createClient(supabaseUrl, supabaseServiceKey, {
@@ -28,7 +29,10 @@ function getSupabaseClient(): SupabaseClient {
     global: {
       fetch: (url, options = {}) => {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
+        const timeout = setTimeout(() => {
+          console.error("[Supabase] Request timeout after 8 seconds");
+          controller.abort();
+        }, 8000);
         return fetch(url, {
           ...options,
           signal: controller.signal,
@@ -37,7 +41,7 @@ function getSupabaseClient(): SupabaseClient {
     },
   });
   
-  console.log("[Supabase] Client initialized");
+  console.log("[Supabase] Client initialized successfully");
   return supabaseInstance;
 }
 

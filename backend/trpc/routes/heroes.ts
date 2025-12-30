@@ -4,23 +4,30 @@ import { supabase } from "../supabase";
 
 export const heroesRouter = createTRPCRouter({
   getAll: publicProcedure.query(async () => {
-    const { data, error } = await supabase
-      .from("heroes")
-      .select("*")
-      .order("created_at", { ascending: true });
+    console.log("[Heroes] Fetching all heroes...");
+    try {
+      const { data, error } = await supabase
+        .from("heroes")
+        .select("*")
+        .order("created_at", { ascending: true });
 
-    if (error) {
-      console.log("Error fetching heroes:", error);
-      throw new Error(error.message);
+      if (error) {
+        console.error("[Heroes] Error fetching heroes:", error.message, error.code);
+        throw new Error(`Failed to fetch heroes: ${error.message}`);
+      }
+
+      console.log("[Heroes] Successfully fetched", data?.length ?? 0, "heroes");
+      return (data ?? []).map((hero) => ({
+        id: hero.id,
+        name: hero.name,
+        position: hero.position,
+        number: hero.number,
+        image: hero.image,
+      }));
+    } catch (err) {
+      console.error("[Heroes] Unexpected error:", err);
+      throw err;
     }
-
-    return data.map((hero) => ({
-      id: hero.id,
-      name: hero.name,
-      position: hero.position,
-      number: hero.number,
-      image: hero.image,
-    }));
   }),
 
   create: publicProcedure
