@@ -6,6 +6,8 @@ import { cors } from "hono/cors";
 import { appRouter } from "../../backend/trpc/app-router";
 import { createContext } from "../../backend/trpc/create-context";
 
+export const runtime = "edge";
+
 const app = new Hono();
 
 app.use("*", cors());
@@ -13,7 +15,7 @@ app.use("*", cors());
 app.use(
   "/*",
   trpcServer({
-    endpoint: "/",
+    endpoint: "/api/trpc",
     router: appRouter,
     createContext,
     onError({ error, path, type, input }) {
@@ -27,11 +29,5 @@ app.use(
     },
   }),
 );
-
-app.get("/", (c) => {
-  const url = new URL(c.req.url);
-  console.log("[tRPC] Hit", { pathname: url.pathname, search: url.search });
-  return c.json({ status: "ok", message: "tRPC endpoint" });
-});
 
 export default handle(app);
