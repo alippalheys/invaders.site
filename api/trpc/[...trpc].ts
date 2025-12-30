@@ -7,7 +7,7 @@ import { appRouter } from "../../backend/trpc/app-router";
 import { createContext } from "../../backend/trpc/create-context";
 
 export const config = {
-  runtime: "nodejs" as const,
+  runtime: "nodejs",
   maxDuration: 30,
 };
 
