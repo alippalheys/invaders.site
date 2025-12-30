@@ -1,11 +1,9 @@
 {
   "buildCommand": "echo 'Backend only'",
   "outputDirectory": ".",
-  "framework": null,
-  "installCommand": "bun install",
   "rewrites": [
     {
-      "source": "/api/:path*",
+      "source": "/api/(.*)",
       "destination": "/api/index.ts"
     }
   ]
