@@ -2,16 +2,11 @@
   "buildCommand": "echo 'Backend only'",
   "outputDirectory": ".",
   "framework": null,
-  "installCommand": "npm install --legacy-peer-deps",
+  "installCommand": "bun install",
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "/api/index.ts"
     }
-  ],
-  "functions": {
-    "api/index.ts": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }
