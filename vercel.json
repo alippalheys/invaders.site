@@ -1,4 +1,9 @@
 {
   "buildCommand": "echo 'Backend only'",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 25
+    }
+  }
 }
