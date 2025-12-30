@@ -271,12 +271,14 @@ export default function AdminScreen() {
         cancelled: 'Cancelled',
       };
       const sizeLabel = order.sizeCategory === 'kids' ? `Kids ${order.size}` : order.size;
+      const sleeveLabel = order.sleeveType === 'long' ? 'Long Sleeve' : 'Short Sleeve';
       return `
         <tr>
           <td>${order.productName}</td>
           <td>${order.customerName}</td>
           <td>${order.customerPhone}</td>
           <td>${sizeLabel}</td>
+          <td>${sleeveLabel}</td>
           <td>${order.price}</td>
           <td>${statusLabels[order.status]}</td>
           <td>${formatDate(order.createdAt)}</td>
@@ -340,6 +342,7 @@ export default function AdminScreen() {
           <th>Customer</th>
           <th>Phone</th>
           <th>Size</th>
+          <th>Sleeve</th>
           <th>Price</th>
           <th>Status</th>
           <th>Date</th>
@@ -475,6 +478,12 @@ export default function AdminScreen() {
                     <Shirt size={14} color={Colors.textMuted} />
                     <Text style={styles.detailText}>
                       Size: {order.sizeCategory === 'kids' ? `Kids ${order.size}` : order.size}
+                    </Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Shirt size={14} color={Colors.textMuted} />
+                    <Text style={styles.detailText}>
+                      Sleeve: {order.sleeveType === 'long' ? 'Long Sleeve' : 'Short Sleeve'}
                     </Text>
                   </View>
                 </View>

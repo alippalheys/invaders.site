@@ -23,6 +23,7 @@ export const ordersRouter = createTRPCRouter({
       customerPhone: order.customer_phone,
       size: order.size,
       sizeCategory: order.size_category,
+      sleeveType: order.sleeve_type || 'short',
       transferSlipUri: order.transfer_slip_uri,
       status: order.status,
       createdAt: order.created_at,
@@ -39,6 +40,7 @@ export const ordersRouter = createTRPCRouter({
         customerPhone: z.string(),
         size: z.string(),
         sizeCategory: z.enum(["adult", "kids"]),
+        sleeveType: z.enum(["short", "long"]),
         transferSlipUri: z.string().nullable(),
       })
     )
@@ -53,6 +55,7 @@ export const ordersRouter = createTRPCRouter({
           customer_phone: input.customerPhone,
           size: input.size,
           size_category: input.sizeCategory,
+          sleeve_type: input.sleeveType,
           transfer_slip_uri: input.transferSlipUri,
           status: "pending",
         })
@@ -73,6 +76,7 @@ export const ordersRouter = createTRPCRouter({
         customerPhone: data.customer_phone,
         size: data.size,
         sizeCategory: data.size_category,
+        sleeveType: data.sleeve_type || 'short',
         transferSlipUri: data.transfer_slip_uri,
         status: data.status,
         createdAt: data.created_at,

@@ -7,6 +7,7 @@ export type OrderRow = {
   customer_phone: string;
   size: string;
   size_category: "adult" | "kids";
+  sleeve_type: "short" | "long";
   transfer_slip_uri: string | null;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
   created_at: string;
@@ -21,6 +22,7 @@ export type OrderInsert = {
   customer_phone: string;
   size: string;
   size_category: "adult" | "kids";
+  sleeve_type?: "short" | "long";
   transfer_slip_uri?: string | null;
   status?: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
   created_at?: string;

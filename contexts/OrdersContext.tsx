@@ -11,6 +11,7 @@ export interface Order {
   customerPhone: string;
   size: string;
   sizeCategory: 'adult' | 'kids';
+  sleeveType: 'short' | 'long';
   transferSlipUri: string | null;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: string;
@@ -50,6 +51,7 @@ export const [OrdersProvider, useOrders] = createContextHook(() => {
       customerPhone: order.customerPhone,
       size: order.size,
       sizeCategory: order.sizeCategory,
+      sleeveType: order.sleeveType,
       transferSlipUri: order.transferSlipUri,
     });
   }, [createMutation]);
@@ -71,6 +73,7 @@ export const [OrdersProvider, useOrders] = createContextHook(() => {
     customerPhone: order.customerPhone,
     size: order.size,
     sizeCategory: order.sizeCategory as 'adult' | 'kids',
+    sleeveType: (order.sleeveType as 'short' | 'long') || 'short',
     transferSlipUri: order.transferSlipUri,
     status: order.status as Order['status'],
     createdAt: order.createdAt,

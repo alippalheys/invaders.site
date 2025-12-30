@@ -81,6 +81,7 @@ export default function HomeScreen() {
   const [orderName, setOrderName] = useState('');
   const [orderPhone, setOrderPhone] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
+  const [sleeveType, setSleeveType] = useState<'short' | 'long'>('short');
   const [sizeCategory, setSizeCategory] = useState<'adult' | 'kids'>('adult');
   const [transferSlipUri, setTransferSlipUri] = useState<string | null>(null);
   const [copiedAccount, setCopiedAccount] = useState(false);
@@ -143,6 +144,7 @@ export default function HomeScreen() {
       setOrderPhone('');
       setSelectedSize('');
       setSizeCategory('adult');
+      setSleeveType('short');
       setTransferSlipUri(null);
       setCopiedAccount(false);
     });
@@ -171,15 +173,17 @@ export default function HomeScreen() {
       customerPhone: orderPhone.trim(),
       size: selectedSize,
       sizeCategory,
+      sleeveType,
       transferSlipUri,
     });
     
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const sizeLabel = sizeCategory === 'kids' ? `Kids ${selectedSize}` : selectedSize;
+    const sleeveLabel = sleeveType === 'long' ? 'Long Sleeve' : 'Short Sleeve';
     const transferInfo = transferSlipUri ? '\n\nTransfer slip attached.' : '';
     Alert.alert(
       'Order Submitted! 🎉',
-      `Thank you ${orderName}!\n\nYour order for ${selectedMerch?.name} (Size: ${sizeLabel}) has been received.${transferInfo}\n\nWe will contact you at ${orderPhone} to confirm your order and payment.`,
+      `Thank you ${orderName}!\n\nYour order for ${selectedMerch?.name} (Size: ${sizeLabel}, ${sleeveLabel}) has been received.${transferInfo}\n\nWe will contact you at ${orderPhone} to confirm your order and payment.`,
       [{ text: 'OK', onPress: closeMerchModal }]
     );
   };
@@ -850,6 +854,42 @@ export default function HomeScreen() {
                       )}
                     </TouchableOpacity>
                   ))}
+                </View>
+              </View>
+
+              <View style={styles.sleeveSection}>
+                <Text style={styles.sizeSectionTitle}>Sleeve Type</Text>
+                <View style={styles.sleeveToggle}>
+                  <TouchableOpacity
+                    style={[
+                      styles.sleeveButton,
+                      sleeveType === 'short' && styles.sleeveButtonActive,
+                    ]}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSleeveType('short');
+                    }}
+                  >
+                    <Text style={[
+                      styles.sleeveButtonText,
+                      sleeveType === 'short' && styles.sleeveButtonTextActive,
+                    ]}>Short Sleeve</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.sleeveButton,
+                      sleeveType === 'long' && styles.sleeveButtonActive,
+                    ]}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSleeveType('long');
+                    }}
+                  >
+                    <Text style={[
+                      styles.sleeveButtonText,
+                      sleeveType === 'long' && styles.sleeveButtonTextActive,
+                    ]}>Long Sleeve</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -1920,6 +1960,34 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   sizeCategoryTextActive: {
+    color: Colors.textPrimary,
+  },
+  sleeveSection: {
+    marginBottom: 22,
+  },
+  sleeveToggle: {
+    flexDirection: 'row',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: 16,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  sleeveButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 14,
+  },
+  sleeveButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  sleeveButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.textMuted,
+  },
+  sleeveButtonTextActive: {
     color: Colors.textPrimary,
   },
   bankTransferSection: {
