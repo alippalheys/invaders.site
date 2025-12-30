@@ -28,7 +28,12 @@ function getSupabaseClient(): SupabaseClient {
     // Removing aggressive timeout or making it longer (15s) to avoid premature failures on cold starts
     global: {
       fetch: (url, options = {}) => {
-        return fetch(url, { ...options });
+        // Add a 10s timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        return fetch(url, { ...options, signal: controller.signal })
+          .finally(() => clearTimeout(timeoutId));
       },
     },
   });
