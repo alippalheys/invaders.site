@@ -7,7 +7,6 @@ import { StatusBar } from "expo-status-bar";
 import Colors from "@/constants/colors";
 import { OrdersProvider } from "@/contexts/OrdersContext";
 import { AppContentProvider } from "@/contexts/AppContentContext";
-import { trpc, trpcClient } from "@/lib/trpc";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,17 +27,15 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <OrdersProvider>
-          <AppContentProvider>
-            <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.background }}>
-              <StatusBar style="light" />
-              <RootLayoutNav />
-            </GestureHandlerRootView>
-          </AppContentProvider>
-        </OrdersProvider>
-      </QueryClientProvider>
-    </trpc.Provider>
+    <QueryClientProvider client={queryClient}>
+      <OrdersProvider>
+        <AppContentProvider>
+          <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.background }}>
+            <StatusBar style="light" />
+            <RootLayoutNav />
+          </GestureHandlerRootView>
+        </AppContentProvider>
+      </OrdersProvider>
+    </QueryClientProvider>
   );
 }
