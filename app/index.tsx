@@ -55,6 +55,13 @@ import PulsingLogo from '@/components/PulsingLogo';
 
 const { width, height } = Dimensions.get('window');
 
+const formatPrice = (price: string): string => {
+  if (price.trim().toUpperCase().startsWith('MVR')) {
+    return price;
+  }
+  return `MVR ${price}`;
+};
+
 const ADULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const KIDS_SIZES = ['4', '6', '8', '10', '12', '14'];
 
@@ -350,7 +357,7 @@ export default function HomeScreen() {
                   </View>
                 </View>
                 <Text style={styles.merchName}>{item.name}</Text>
-                <Text style={styles.merchPrice}>{item.price}</Text>
+                <Text style={styles.merchPrice}>{formatPrice(item.price)}</Text>
               </TouchableCard>
             ))}
           </View>
@@ -674,7 +681,7 @@ export default function HomeScreen() {
                   style={styles.modalProductImage}
                   resizeMode="cover"
                 />
-                <Text style={styles.modalProductPrice}>{selectedMerch?.price}</Text>
+                <Text style={styles.modalProductPrice}>{selectedMerch?.price ? formatPrice(selectedMerch.price) : ''}</Text>
               </View>
 
               <TouchableOpacity
