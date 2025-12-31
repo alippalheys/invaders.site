@@ -4,27 +4,37 @@ import { supabase } from "../supabase";
 
 export const heroesRouter = createTRPCRouter({
   getAll: publicProcedure.query(async () => {
-    console.log("[Heroes] Fetching all heroes...");
-    
-    const { data, error } = await supabase
-      .from("heroes")
-      .select("*")
-      .order("created_at", { ascending: true })
-      .limit(100);
+    try {
+      console.log("[Heroes] Fetching all heroes...");
+      
+      const { data, error } = await Promise.race([
+        supabase
+          .from("heroes")
+          .select("*")
+          .order("created_at", { ascending: true })
+          .limit(100),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), 3000)
+        )
+      ]);
 
-    if (error) {
-      console.error("[Heroes] Error fetching heroes:", error.message);
-      throw new Error(`Failed to fetch heroes: ${error.message}`);
+      if (error) {
+        console.error("[Heroes] Error fetching heroes:", error.message);
+        return [];
+      }
+
+      console.log("[Heroes] Successfully fetched", data?.length ?? 0, "heroes");
+      return (data ?? []).map((hero: any) => ({
+        id: hero.id,
+        name: hero.name,
+        position: hero.position,
+        number: hero.number,
+        image: hero.image,
+      }));
+    } catch (error) {
+      console.error("[Heroes] Query failed:", error);
+      return [];
     }
-
-    console.log("[Heroes] Successfully fetched", data?.length ?? 0, "heroes");
-    return (data ?? []).map((hero: any) => ({
-      id: hero.id,
-      name: hero.name,
-      position: hero.position,
-      number: hero.number,
-      image: hero.image,
-    }));
   }),
 
   create: publicProcedure

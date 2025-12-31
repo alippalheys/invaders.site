@@ -22,6 +22,8 @@ export const [OrdersProvider, useOrders] = createContextHook(() => {
   
   const ordersQuery = trpc.orders.getAll.useQuery(undefined, {
     staleTime: 1000 * 60,
+    retry: 0,
+    retryDelay: 500,
   });
 
   const createMutation = trpc.orders.create.useMutation({

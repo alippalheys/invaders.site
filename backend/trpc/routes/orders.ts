@@ -4,34 +4,44 @@ import { supabase } from "../supabase";
 
 export const ordersRouter = createTRPCRouter({
   getAll: publicProcedure.query(async () => {
-    console.log("[Orders] Fetching all orders...");
-    
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
+    try {
+      console.log("[Orders] Fetching all orders...");
+      
+      const { data, error } = await Promise.race([
+        supabase
+          .from("orders")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(100),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), 3000)
+        )
+      ]);
 
-    if (error) {
-      console.error("[Orders] Error fetching orders:", error.message);
-      throw new Error(`Failed to fetch orders: ${error.message}`);
+      if (error) {
+        console.error("[Orders] Error fetching orders:", error.message);
+        return [];
+      }
+
+      console.log("[Orders] Successfully fetched", data?.length ?? 0, "orders");
+      return (data ?? []).map((order: any) => ({
+        id: order.id,
+        productName: order.product_name,
+        productImage: order.product_image,
+        price: order.price,
+        customerName: order.customer_name,
+        customerPhone: order.customer_phone,
+        size: order.size,
+        sizeCategory: order.size_category,
+        sleeveType: order.sleeve_type || 'short',
+        transferSlipUri: order.transfer_slip_uri,
+        status: order.status,
+        createdAt: order.created_at,
+      }));
+    } catch (error) {
+      console.error("[Orders] Query failed:", error);
+      return [];
     }
-
-    console.log("[Orders] Successfully fetched", data?.length ?? 0, "orders");
-    return (data ?? []).map((order: any) => ({
-      id: order.id,
-      productName: order.product_name,
-      productImage: order.product_image,
-      price: order.price,
-      customerName: order.customer_name,
-      customerPhone: order.customer_phone,
-      size: order.size,
-      sizeCategory: order.size_category,
-      sleeveType: order.sleeve_type || 'short',
-      transferSlipUri: order.transfer_slip_uri,
-      status: order.status,
-      createdAt: order.created_at,
-    }));
   }),
 
   create: publicProcedure
@@ -49,45 +59,55 @@ export const ordersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      console.log("[Orders] Creating order for:", input.customerName);
-      
-      const { data, error } = await supabase
-        .from("orders")
-        .insert({
-          product_name: input.productName,
-          product_image: input.productImage,
-          price: input.price,
-          customer_name: input.customerName,
-          customer_phone: input.customerPhone,
-          size: input.size,
-          size_category: input.sizeCategory,
-          sleeve_type: input.sleeveType,
-          transfer_slip_uri: input.transferSlipUri,
-          status: "pending",
-        })
-        .select()
-        .single();
+      try {
+        console.log("[Orders] Creating order for:", input.customerName);
+        
+        const { data, error } = await Promise.race([
+          supabase
+            .from("orders")
+            .insert({
+              product_name: input.productName,
+              product_image: input.productImage,
+              price: input.price,
+              customer_name: input.customerName,
+              customer_phone: input.customerPhone,
+              size: input.size,
+              size_category: input.sizeCategory,
+              sleeve_type: input.sleeveType,
+              transfer_slip_uri: input.transferSlipUri,
+              status: "pending",
+            })
+            .select()
+            .single(),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Insert timeout')), 5000)
+          )
+        ]);
 
-      if (error) {
-        console.error("[Orders] Error creating order:", error.message);
-        throw new Error(`Failed to create order: ${error.message}`);
+        if (error) {
+          console.error("[Orders] Error creating order:", error.message);
+          throw new Error(`Failed to create order: ${error.message}`);
+        }
+
+        console.log("[Orders] Order created successfully:", data.id);
+        return {
+          id: data.id,
+          productName: data.product_name,
+          productImage: data.product_image,
+          price: data.price,
+          customerName: data.customer_name,
+          customerPhone: data.customer_phone,
+          size: data.size,
+          sizeCategory: data.size_category,
+          sleeveType: data.sleeve_type || 'short',
+          transferSlipUri: data.transfer_slip_uri,
+          status: data.status,
+          createdAt: data.created_at,
+        };
+      } catch (error: any) {
+        console.error("[Orders] Mutation failed:", error);
+        throw new Error(error.message || 'Failed to create order');
       }
-
-      console.log("[Orders] Order created successfully:", data.id);
-      return {
-        id: data.id,
-        productName: data.product_name,
-        productImage: data.product_image,
-        price: data.price,
-        customerName: data.customer_name,
-        customerPhone: data.customer_phone,
-        size: data.size,
-        sizeCategory: data.size_category,
-        sleeveType: data.sleeve_type || 'short',
-        transferSlipUri: data.transfer_slip_uri,
-        status: data.status,
-        createdAt: data.created_at,
-      };
     }),
 
   updateStatus: publicProcedure

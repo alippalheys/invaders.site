@@ -4,26 +4,36 @@ import { supabase } from "../supabase";
 
 export const merchRouter = createTRPCRouter({
   getAll: publicProcedure.query(async () => {
-    console.log("[Merch] Fetching all merch items...");
-    
-    const { data, error } = await supabase
-      .from("merch_items")
-      .select("*")
-      .order("created_at", { ascending: true })
-      .limit(100);
+    try {
+      console.log("[Merch] Fetching all merch items...");
+      
+      const { data, error } = await Promise.race([
+        supabase
+          .from("merch_items")
+          .select("*")
+          .order("created_at", { ascending: true })
+          .limit(100),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), 3000)
+        )
+      ]);
 
-    if (error) {
-      console.error("[Merch] Error fetching items:", error.message);
-      throw new Error(`Failed to fetch merch items: ${error.message}`);
+      if (error) {
+        console.error("[Merch] Error fetching items:", error.message);
+        return [];
+      }
+
+      console.log("[Merch] Successfully fetched", data?.length ?? 0, "items");
+      return (data ?? []).map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+      }));
+    } catch (error) {
+      console.error("[Merch] Query failed:", error);
+      return [];
     }
-
-    console.log("[Merch] Successfully fetched", data?.length ?? 0, "items");
-    return (data ?? []).map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      image: item.image,
-    }));
   }),
 
   create: publicProcedure

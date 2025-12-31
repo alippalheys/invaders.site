@@ -44,10 +44,14 @@ export const [AppContentProvider, useAppContent] = createContextHook(() => {
 
   const merchQuery = trpc.merch.getAll.useQuery(undefined, {
     staleTime: 1000 * 60 * 5,
+    retry: 0,
+    retryDelay: 500,
   });
 
   const heroesQuery = trpc.heroes.getAll.useQuery(undefined, {
     staleTime: 1000 * 60 * 5,
+    retry: 0,
+    retryDelay: 500,
   });
 
   const createMerchMutation = trpc.merch.create.useMutation({
