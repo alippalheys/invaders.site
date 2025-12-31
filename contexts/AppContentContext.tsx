@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import createContextHook from '@nkzw/create-context-hook';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
+import { trpc } from '@/lib/trpc';
 
 export interface MerchItem {
   id: string;
@@ -43,168 +43,77 @@ const DEFAULT_HEROES: Hero[] = [
 export const [AppContentProvider, useAppContent] = createContextHook(() => {
   const queryClient = useQueryClient();
 
-  const merchQuery = useQuery<MerchItem[]>({
-    queryKey: ['merch'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('merch_items')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      if (!data) return [];
-      return data.map((item): MerchItem => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        image: item.image,
-      }));
-    },
+  const merchQuery = trpc.merch.getAll.useQuery(undefined, {
     staleTime: 1000 * 60 * 5,
     retry: 0,
     retryDelay: 500,
   });
 
-  const heroesQuery = useQuery<Hero[]>({
-    queryKey: ['heroes'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('heroes')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      if (!data) return [];
-      return data.map((hero): Hero => ({
-        id: hero.id,
-        name: hero.name,
-        position: hero.position,
-        number: hero.number,
-        image: hero.image,
-      }));
-    },
+  const heroesQuery = trpc.heroes.getAll.useQuery(undefined, {
     staleTime: 1000 * 60 * 5,
     retry: 0,
     retryDelay: 500,
   });
 
-  const { mutate: createMerch } = useMutation({
-    mutationFn: async (item: Omit<MerchItem, 'id'>) => {
-      const { data, error } = await supabase
-        .from('merch_items')
-        .insert(item)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
+  const createMerchMutation = trpc.merch.create.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['merch'] });
+      queryClient.invalidateQueries({ queryKey: [['merch', 'getAll']] });
     },
   });
 
-  const { mutate: updateMerch } = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string } & Partial<MerchItem>) => {
-      const { data, error } = await supabase
-        .from('merch_items')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
+  const updateMerchMutation = trpc.merch.update.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['merch'] });
+      queryClient.invalidateQueries({ queryKey: [['merch', 'getAll']] });
     },
   });
 
-  const { mutate: deleteMerch } = useMutation({
-    mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase
-        .from('merch_items')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
+  const deleteMerchMutation = trpc.merch.delete.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['merch'] });
+      queryClient.invalidateQueries({ queryKey: [['merch', 'getAll']] });
     },
   });
 
-  const { mutate: createHero } = useMutation({
-    mutationFn: async (hero: Omit<Hero, 'id'>) => {
-      const { data, error } = await supabase
-        .from('heroes')
-        .insert(hero)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
+  const createHeroMutation = trpc.heroes.create.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['heroes'] });
+      queryClient.invalidateQueries({ queryKey: [['heroes', 'getAll']] });
     },
   });
 
-  const { mutate: updateHero } = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string } & Partial<Hero>) => {
-      const { data, error } = await supabase
-        .from('heroes')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
+  const updateHeroMutation = trpc.heroes.update.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['heroes'] });
+      queryClient.invalidateQueries({ queryKey: [['heroes', 'getAll']] });
     },
   });
 
-  const { mutate: deleteHero } = useMutation({
-    mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase
-        .from('heroes')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
+  const deleteHeroMutation = trpc.heroes.delete.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['heroes'] });
+      queryClient.invalidateQueries({ queryKey: [['heroes', 'getAll']] });
     },
   });
 
   const addMerchItem = useCallback((item: Omit<MerchItem, 'id'>) => {
-    createMerch(item);
-  }, [createMerch]);
+    createMerchMutation.mutate(item);
+  }, [createMerchMutation]);
 
   const updateMerchItem = useCallback((id: string, updates: Partial<MerchItem>) => {
-    updateMerch({ id, ...updates });
-  }, [updateMerch]);
+    updateMerchMutation.mutate({ id, ...updates });
+  }, [updateMerchMutation]);
 
   const deleteMerchItem = useCallback((id: string) => {
-    deleteMerch({ id });
-  }, [deleteMerch]);
+    deleteMerchMutation.mutate({ id });
+  }, [deleteMerchMutation]);
 
   const addHero = useCallback((hero: Omit<Hero, 'id'>) => {
-    createHero(hero);
-  }, [createHero]);
+    createHeroMutation.mutate(hero);
+  }, [createHeroMutation]);
 
   const updateHeroItem = useCallback((id: string, updates: Partial<Hero>) => {
-    updateHero({ id, ...updates });
-  }, [updateHero]);
+    updateHeroMutation.mutate({ id, ...updates });
+  }, [updateHeroMutation]);
 
   const deleteHeroItem = useCallback((id: string) => {
-    deleteHero({ id });
-  }, [deleteHero]);
+    deleteHeroMutation.mutate({ id });
+  }, [deleteHeroMutation]);
 
   const merchItems = merchQuery.data && merchQuery.data.length > 0 
     ? merchQuery.data 

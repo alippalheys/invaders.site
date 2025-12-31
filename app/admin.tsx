@@ -272,6 +272,7 @@ export default function AdminScreen() {
       };
       const sizeLabel = order.sizeCategory === 'kids' ? `Kids ${order.size}` : order.size;
       const sleeveLabel = order.sleeveType === 'long' ? 'Long Sleeve' : 'Short Sleeve';
+      const status = order.status as Order['status'];
       return `
         <tr>
           <td>${order.productName}</td>
@@ -280,7 +281,7 @@ export default function AdminScreen() {
           <td>${sizeLabel}</td>
           <td>${sleeveLabel}</td>
           <td>${order.price}</td>
-          <td>${statusLabels[order.status]}</td>
+          <td>${statusLabels[status]}</td>
           <td>${formatDate(order.createdAt)}</td>
         </tr>
       `;
@@ -437,7 +438,7 @@ export default function AdminScreen() {
           </View>
         ) : (
           orders.map((order) => {
-            const statusConfig = STATUS_CONFIG[order.status];
+            const statusConfig = STATUS_CONFIG[order.status as Order['status']];
             return (
               <View key={order.id} style={styles.orderCard}>
                 <View style={styles.orderHeader}>
