@@ -31,11 +31,12 @@ export const [OrdersProvider, useOrders] = createContextHook(() => {
   
   const ordersQuery = trpc.orders.getAll.useQuery(undefined, {
     staleTime: 1000 * 30,
-    refetchInterval: 1000 * 30,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchInterval: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     retry: 0,
     retryDelay: 500,
+    throwOnError: false,
   });
 
   const createOrderMutation = trpc.orders.create.useMutation({

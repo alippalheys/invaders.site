@@ -53,18 +53,27 @@ export const [AppContentProvider, useAppContent] = createContextHook(() => {
     staleTime: 1000 * 60 * 5,
     retry: 0,
     retryDelay: 500,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    throwOnError: false,
   });
 
   const heroesQuery = trpc.heroes.getAll.useQuery(undefined, {
     staleTime: 1000 * 60 * 5,
     retry: 0,
     retryDelay: 500,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    throwOnError: false,
   });
 
   const settingsQuery = trpc.settings.get.useQuery(undefined, {
     staleTime: 1000 * 60 * 5,
     retry: 0,
     retryDelay: 500,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    throwOnError: false,
   });
 
   const createMerchMutation = trpc.merch.create.useMutation({
