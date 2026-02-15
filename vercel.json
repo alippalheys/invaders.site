@@ -6,22 +6,14 @@
       "maxDuration": 25
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/trpc/(.*)",
-      "dest": "/api/trpc/[...trpc].ts",
-      "methods": ["GET", "POST", "OPTIONS"]
+      "source": "/api/trpc/:path*",
+      "destination": "/api/trpc/[...trpc]"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/((?!api/).*)",
-      "dest": "/index.html"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
