@@ -88,7 +88,7 @@ export default function HomeScreen() {
   const [currentQuantity, setCurrentQuantity] = useState(1);
   const [transferSlipUri, setTransferSlipUri] = useState<string | null>(null);
   const [copiedAccount, setCopiedAccount] = useState(false);
-  const [showSizeGuide, setShowSizeGuide] = useState(true);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
   const modalScale = useRef(new Animated.Value(0.9)).current;
   const modalOpacity = useRef(new Animated.Value(0)).current;
 
@@ -129,7 +129,7 @@ export default function HomeScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedMerch(item);
     setModalVisible(true);
-    setShowSizeGuide(true);
+    setShowSizeGuide(false);
     Animated.parallel([
       Animated.spring(modalScale, { toValue: 1, useNativeDriver: false, speed: 20 }),
       Animated.timing(modalOpacity, { toValue: 1, duration: 200, useNativeDriver: false }),
@@ -143,9 +143,6 @@ export default function HomeScreen() {
     ]).start(() => {
       setModalVisible(false);
       setSelectedMerch(null);
-      setOrderName('');
-      setOrderPhone('');
-      setCartItems([]);
       setCurrentSize('');
       setCurrentSizeCategory('adult');
       setCurrentSleeveType('short');
@@ -1009,10 +1006,29 @@ export default function HomeScreen() {
 
               {cartItems.length > 0 && (
                 <View style={styles.cartSection}>
-                  <Text style={styles.cartTitle}>Cart ({cartItems.length} item{cartItems.length !== 1 ? 's' : ''})</Text>
+                  <View style={styles.cartHeader}>
+                    <Text style={styles.cartTitle}>Cart ({cartItems.length} item{cartItems.length !== 1 ? 's' : ''})</Text>
+                    <TouchableOpacity
+                      style={styles.clearCartButton}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        Alert.alert(
+                          'Clear Cart',
+                          'Remove all items from cart?',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Clear', style: 'destructive', onPress: () => setCartItems([]) },
+                          ]
+                        );
+                      }}
+                    >
+                      <Text style={styles.clearCartText}>Clear All</Text>
+                    </TouchableOpacity>
+                  </View>
                   {cartItems.map((item, index) => (
                     <View key={index} style={styles.cartItem}>
                       <View style={styles.cartItemInfo}>
+                        <Text style={styles.cartItemProduct}>{item.productName}</Text>
                         <Text style={styles.cartItemName}>{item.jerseyName} #{item.jerseyNumber}</Text>
                         <Text style={styles.cartItemDetails}>
                           Size: {item.sizeCategory === 'kids' ? `Kids ${item.size}` : item.size} • {item.sleeveType === 'long' ? 'Long' : 'Short'} Sleeve
@@ -2271,11 +2287,27 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: Colors.textPrimary,
   },
+  cartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
   cartTitle: {
     fontSize: 15,
     fontWeight: '700' as const,
     color: Colors.textPrimary,
-    marginBottom: 14,
+  },
+  clearCartButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+  },
+  clearCartText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: '#ef4444',
   },
   cartItem: {
     flexDirection: 'row',
@@ -2287,6 +2319,14 @@ const styles = StyleSheet.create({
   },
   cartItemInfo: {
     flex: 1,
+  },
+  cartItemProduct: {
+    fontSize: 11,
+    fontWeight: '500' as const,
+    color: Colors.primary,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   cartItemName: {
     fontSize: 14,
