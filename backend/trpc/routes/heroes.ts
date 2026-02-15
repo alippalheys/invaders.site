@@ -37,6 +37,24 @@ export const heroesRouter = createTRPCRouter({
     }
   }),
 
+  getCount: publicProcedure.query(async () => {
+    try {
+      const { count, error } = await supabase
+        .from("heroes")
+        .select("*", { count: "exact", head: true });
+
+      if (error) {
+        console.error("[Heroes] Error getting count:", error.message);
+        return 0;
+      }
+
+      return count ?? 0;
+    } catch (error) {
+      console.error("[Heroes] Count query failed:", error);
+      return 0;
+    }
+  }),
+
   create: publicProcedure
     .input(
       z.object({
@@ -48,6 +66,19 @@ export const heroesRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       try {
+        const { count, error: countError } = await supabase
+          .from("heroes")
+          .select("*", { count: "exact", head: true });
+
+        if (countError) {
+          console.error("[Heroes] Error checking count:", countError.message);
+          throw new Error("Failed to verify hero count");
+        }
+
+        if ((count ?? 0) >= 100) {
+          throw new Error("Maximum limit of 100 heroes reached. Please delete some heroes before adding new ones.");
+        }
+
         const { data, error } = await supabase
           .from("heroes")
           .insert({

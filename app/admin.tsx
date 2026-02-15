@@ -792,15 +792,34 @@ export default function AdminScreen() {
     </ScrollView>
   );
 
+  const MAX_HEROES = 100;
+  const heroesCount = heroes.length;
+  const canAddHero = heroesCount < MAX_HEROES;
+
   const renderHeroesTab = () => (
     <ScrollView
       style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      <TouchableOpacity style={styles.addButton} onPress={openAddHero}>
-        <Plus size={20} color={Colors.textPrimary} />
-        <Text style={styles.addButtonText}>Add New Hero</Text>
+      <View style={styles.heroLimitContainer}>
+        <Text style={styles.heroLimitText}>
+          {heroesCount} / {MAX_HEROES} heroes
+        </Text>
+        <View style={styles.heroLimitBar}>
+          <View style={[styles.heroLimitProgress, { width: `${(heroesCount / MAX_HEROES) * 100}%` }]} />
+        </View>
+      </View>
+
+      <TouchableOpacity 
+        style={[styles.addButton, !canAddHero && styles.addButtonDisabled]} 
+        onPress={openAddHero}
+        disabled={!canAddHero}
+      >
+        <Plus size={20} color={canAddHero ? Colors.textPrimary : Colors.textMuted} />
+        <Text style={[styles.addButtonText, !canAddHero && styles.addButtonTextDisabled]}>
+          {canAddHero ? 'Add New Hero' : 'Maximum Heroes Reached'}
+        </Text>
       </TouchableOpacity>
 
       {heroes.length === 0 ? (
@@ -2053,5 +2072,33 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700' as const,
     color: Colors.textPrimary,
+  },
+  heroLimitContainer: {
+    marginBottom: 16,
+  },
+  heroLimitText: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textMuted,
+    marginBottom: 8,
+    textAlign: 'right' as const,
+  },
+  heroLimitBar: {
+    height: 6,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: 3,
+    overflow: 'hidden' as const,
+  },
+  heroLimitProgress: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 3,
+  },
+  addButtonDisabled: {
+    backgroundColor: Colors.backgroundElevated,
+    borderColor: Colors.border,
+  },
+  addButtonTextDisabled: {
+    color: Colors.textMuted,
   },
 });
