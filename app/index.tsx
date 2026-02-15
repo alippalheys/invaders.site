@@ -43,6 +43,7 @@ import {
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import Colors from '@/constants/colors';
 import { useOrders, OrderItem } from '@/contexts/OrdersContext';
 import { useAppContent, MerchItem, Hero } from '@/contexts/AppContentContext';
@@ -1135,10 +1136,28 @@ export default function HomeScreen() {
                       const result = await ImagePicker.launchImageLibraryAsync({
                         mediaTypes: ['images'],
                         allowsEditing: false,
-                        quality: 0.8,
+                        quality: 0.6,
+                        base64: true,
                       });
                       if (!result.canceled && result.assets[0]) {
-                        setTransferSlipUri(result.assets[0].uri);
+                        const asset = result.assets[0];
+                        if (asset.base64) {
+                          const mimeType = asset.mimeType || 'image/jpeg';
+                          setTransferSlipUri(`data:${mimeType};base64,${asset.base64}`);
+                        } else if (Platform.OS !== 'web' && asset.uri) {
+                          try {
+                            const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+                              encoding: 'base64',
+                            });
+                            const mimeType = asset.mimeType || 'image/jpeg';
+                            setTransferSlipUri(`data:${mimeType};base64,${base64}`);
+                          } catch (e) {
+                            console.error('Failed to convert image to base64:', e);
+                            Alert.alert('Error', 'Failed to process image. Please try again.');
+                          }
+                        } else {
+                          setTransferSlipUri(asset.uri);
+                        }
                       }
                     }}
                   >
