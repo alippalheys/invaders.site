@@ -398,7 +398,8 @@ export default function AdminScreen() {
       const itemsList = order.items.map((item: any) => {
         const sizeLabel = item.sizeCategory === 'kids' ? `Kids ${item.size}` : item.size;
         const sleeveLabel = item.sleeveType === 'long' ? 'Long' : 'Short';
-        return `${item.jerseyName} (${sizeLabel}, ${sleeveLabel})`;
+        const customization = (item.jerseyName || item.jerseyNumber) ? ` [${item.jerseyName || ''}${item.jerseyName && item.jerseyNumber ? '/' : ''}${item.jerseyNumber ? '#' + item.jerseyNumber : ''}]` : '';
+        return `${item.productName} (${sizeLabel}, ${sleeveLabel})${customization}`;
       }).join(', ');
       
       return `
@@ -698,11 +699,20 @@ export default function AdminScreen() {
                     <Text style={styles.detailText}>{order.customerPhone}</Text>
                   </View>
                   {order.items.map((item: any, index: number) => (
-                    <View key={index} style={styles.detailRow}>
-                      <Shirt size={14} color={Colors.textMuted} />
-                      <Text style={styles.detailText}>
-                        {item.jerseyName} - {item.sizeCategory === 'kids' ? `Kids ${item.size}` : item.size}, {item.sleeveType === 'long' ? 'Long' : 'Short'} Sleeve
-                      </Text>
+                    <View key={index} style={styles.itemDetailContainer}>
+                      <View style={styles.detailRow}>
+                        <Shirt size={14} color={Colors.textMuted} />
+                        <Text style={styles.detailText}>
+                          {item.productName} - {item.sizeCategory === 'kids' ? `Kids ${item.size}` : item.size}, {item.sleeveType === 'long' ? 'Long' : 'Short'} Sleeve
+                        </Text>
+                      </View>
+                      {(item.jerseyName || item.jerseyNumber) && (
+                        <View style={styles.customizationRow}>
+                          <Text style={styles.customizationText}>
+                            Custom: {item.jerseyName ? `"${item.jerseyName}"` : ''}{item.jerseyName && item.jerseyNumber ? ' / ' : ''}{item.jerseyNumber ? `#${item.jerseyNumber}` : ''}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   ))}
                 </View>
@@ -1719,6 +1729,18 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 14,
     color: Colors.textSecondary,
+    flex: 1,
+  },
+  itemDetailContainer: {
+    gap: 4,
+  },
+  customizationRow: {
+    marginLeft: 24,
+  },
+  customizationText: {
+    fontSize: 12,
+    color: Colors.primary,
+    fontStyle: 'italic' as const,
   },
   transferSlipButton: {
     flexDirection: 'row',
