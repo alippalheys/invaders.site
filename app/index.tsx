@@ -73,8 +73,7 @@ export default function HomeScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const heroOpacity = useRef(new Animated.Value(0)).current;
   const heroScale = useRef(new Animated.Value(0.9)).current;
-  
-
+  const logoZoom = useRef(new Animated.Value(1)).current;
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMerch, setSelectedMerch] = useState<MerchItem | null>(null);
@@ -110,8 +109,24 @@ export default function HomeScreen() {
       }),
     ]).start();
 
+    const zoomAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(logoZoom, {
+          toValue: 1.08,
+          duration: 2000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(logoZoom, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: false,
+        }),
+      ])
+    );
+    zoomAnimation.start();
 
-  }, [heroOpacity, heroScale]);
+    return () => zoomAnimation.stop();
+  }, [heroOpacity, heroScale, logoZoom]);
 
   const handleContactPress = (type: 'phone' | 'email' | 'instagram' | 'facebook') => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -335,14 +350,14 @@ export default function HomeScreen() {
               },
             ]}
           >
-            <View style={styles.logoContainer}>
+            <Animated.View style={[styles.logoContainer, { transform: [{ scale: logoZoom }] }]}>
               <View style={styles.logoGlow} />
               <Image
                 source={require('@/assets/images/logo.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
-            </View>
+            </Animated.View>
 
             <Text style={styles.clubName}>CLUB INVADERS</Text>
             
@@ -1264,14 +1279,14 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 150,
-    height: 150,
+    width: 200,
+    height: 200,
   },
   logoGlow: {
     position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
     backgroundColor: 'transparent',
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 0 },
@@ -1281,15 +1296,15 @@ const styles = StyleSheet.create({
   },
   logoRing: {
     position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 210,
+    height: 210,
+    borderRadius: 105,
     borderWidth: 1,
     borderColor: Colors.borderGlow,
   },
   logoImage: {
-    width: 130,
-    height: 130,
+    width: 180,
+    height: 180,
   },
   clubName: {
     fontSize: 38,
