@@ -11,30 +11,30 @@ interface PulsingLogoProps {
 const LOGO_URI = 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/mayksiynf9mps3sykzxn4';
 
 export default function PulsingLogo({ size = 200, delay = 0, opacity = 0.15 }: PulsingLogoProps) {
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(opacity)).current;
-  const glowAnim = useRef(new Animated.Value(0.2)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const glowLineOpacity = useRef(new Animated.Value(0.8)).current;
+  const glowIntensity = useRef(new Animated.Value(0.4)).current;
+  const sweepPosition = useRef(new Animated.Value(0)).current;
+  const glowPulse = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
     const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.parallel([
           Animated.timing(scaleAnim, {
-            toValue: 1.3,
+            toValue: 1.05,
             duration: 4500,
             delay,
             useNativeDriver: false,
           }),
           Animated.timing(opacityAnim, {
-            toValue: opacity * 0.2,
+            toValue: opacity * 0.5,
             duration: 4500,
             delay,
             useNativeDriver: false,
           }),
-          Animated.timing(glowAnim, {
-            toValue: 0.6,
+          Animated.timing(glowIntensity, {
+            toValue: 0.8,
             duration: 4500,
             delay,
             useNativeDriver: false,
@@ -42,7 +42,7 @@ export default function PulsingLogo({ size = 200, delay = 0, opacity = 0.15 }: P
         ]),
         Animated.parallel([
           Animated.timing(scaleAnim, {
-            toValue: 0.8,
+            toValue: 0.95,
             duration: 4500,
             useNativeDriver: false,
           }),
@@ -51,8 +51,8 @@ export default function PulsingLogo({ size = 200, delay = 0, opacity = 0.15 }: P
             duration: 4500,
             useNativeDriver: false,
           }),
-          Animated.timing(glowAnim, {
-            toValue: 0.2,
+          Animated.timing(glowIntensity, {
+            toValue: 0.4,
             duration: 4500,
             useNativeDriver: false,
           }),
@@ -60,10 +60,10 @@ export default function PulsingLogo({ size = 200, delay = 0, opacity = 0.15 }: P
       ])
     );
 
-    const rotateAnimation = Animated.loop(
-      Animated.timing(rotateAnim, {
+    const sweepAnimation = Animated.loop(
+      Animated.timing(sweepPosition, {
         toValue: 1,
-        duration: 3000,
+        duration: 2500,
         easing: Easing.linear,
         useNativeDriver: false,
       })
@@ -71,102 +71,115 @@ export default function PulsingLogo({ size = 200, delay = 0, opacity = 0.15 }: P
 
     const glowPulseAnimation = Animated.loop(
       Animated.sequence([
-        Animated.timing(glowLineOpacity, {
+        Animated.timing(glowPulse, {
           toValue: 1,
-          duration: 800,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: false,
         }),
-        Animated.timing(glowLineOpacity, {
-          toValue: 0.4,
-          duration: 800,
+        Animated.timing(glowPulse, {
+          toValue: 0.5,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: false,
         }),
       ])
     );
 
     pulseAnimation.start();
-    rotateAnimation.start();
+    sweepAnimation.start();
     glowPulseAnimation.start();
 
     return () => {
       pulseAnimation.stop();
-      rotateAnimation.stop();
+      sweepAnimation.stop();
       glowPulseAnimation.stop();
     };
-  }, [delay, scaleAnim, opacityAnim, glowAnim, opacity, rotateAnim, glowLineOpacity]);
+  }, [delay, scaleAnim, opacityAnim, glowIntensity, opacity, sweepPosition, glowPulse]);
 
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
+  const sweepTranslateX = sweepPosition.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [-size * 0.8, 0, size * 0.8],
   });
 
-  const ringSize = size * 1.15;
+  const sweepOpacity = sweepPosition.interpolate({
+    inputRange: [0, 0.2, 0.5, 0.8, 1],
+    outputRange: [0, 1, 1, 1, 0],
+  });
 
   return (
     <View style={[styles.wrapper, { width: size, height: size }]}>
+      {/* Outer glow layers - following logo shape */}
       <Animated.View
         style={[
-          styles.glowRing,
+          styles.glowLayer,
           {
-            width: size * 1.2,
-            height: size * 1.2,
-            borderRadius: size * 0.6,
-            opacity: glowAnim,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
-      />
-      
-      {/* Moving glow line effect */}
-      <Animated.View
-        style={[
-          styles.movingGlowContainer,
-          {
-            width: ringSize,
-            height: ringSize,
-            borderRadius: ringSize / 2,
-            transform: [{ rotate: spin }],
+            width: size * 1.15,
+            height: size * 1.15,
+            opacity: Animated.multiply(glowIntensity, 0.3),
           },
         ]}
       >
-        <Animated.View
-          style={[
-            styles.glowLine,
-            {
-              opacity: glowLineOpacity,
-              width: 60,
-              height: 4,
-              top: -2,
-              left: (ringSize / 2) - 30,
-            },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.glowLineTail,
-            {
-              opacity: Animated.multiply(glowLineOpacity, 0.5),
-              width: 40,
-              height: 3,
-              top: -1.5,
-              left: (ringSize / 2) - 50,
-            },
-          ]}
+        <Image
+          source={{ uri: LOGO_URI }}
+          style={[styles.glowImage, { shadowRadius: 25 }]}
+          resizeMode="contain"
+          blurRadius={8}
         />
       </Animated.View>
 
-      {/* Outer ring */}
-      <View
+      <Animated.View
         style={[
-          styles.outerRing,
+          styles.glowLayer,
           {
-            width: ringSize,
-            height: ringSize,
-            borderRadius: ringSize / 2,
+            width: size * 1.1,
+            height: size * 1.1,
+            opacity: Animated.multiply(glowIntensity, 0.5),
           },
         ]}
-      />
+      >
+        <Image
+          source={{ uri: LOGO_URI }}
+          style={[styles.glowImage, { shadowRadius: 18 }]}
+          resizeMode="contain"
+          blurRadius={5}
+        />
+      </Animated.View>
 
+      <Animated.View
+        style={[
+          styles.glowLayer,
+          {
+            width: size * 1.05,
+            height: size * 1.05,
+            opacity: Animated.multiply(glowIntensity, 0.7),
+          },
+        ]}
+      >
+        <Image
+          source={{ uri: LOGO_URI }}
+          style={[styles.glowImage, { shadowRadius: 12 }]}
+          resizeMode="contain"
+          blurRadius={3}
+        />
+      </Animated.View>
+
+      {/* Moving light sweep effect */}
+      <View style={[styles.sweepContainer, { width: size, height: size }]}>
+        <Animated.View
+          style={[
+            styles.sweepLight,
+            {
+              width: size * 0.3,
+              height: size * 1.2,
+              opacity: Animated.multiply(sweepOpacity, glowPulse),
+              transform: [{ translateX: sweepTranslateX }, { rotate: '15deg' }],
+            },
+          ]}
+        />
+      </View>
+
+      {/* Main logo with pulsing glow */}
       <Animated.View
         style={[
           styles.container,
@@ -178,9 +191,14 @@ export default function PulsingLogo({ size = 200, delay = 0, opacity = 0.15 }: P
           },
         ]}
       >
-        <Image
+        <Animated.Image
           source={{ uri: LOGO_URI }}
-          style={styles.logo}
+          style={[
+            styles.logo,
+            {
+              shadowOpacity: glowPulse,
+            },
+          ]}
           resizeMode="contain"
         />
       </Animated.View>
@@ -194,46 +212,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glowRing: {
-    position: 'absolute',
-    backgroundColor: 'transparent',
-    borderWidth: 3,
-    borderColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 50,
-  },
-  movingGlowContainer: {
+  glowLayer: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glowLine: {
-    position: 'absolute',
-    backgroundColor: Colors.primary,
-    borderRadius: 2,
+  glowImage: {
+    width: '100%',
+    height: '100%',
+    tintColor: Colors.primary,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
-    shadowRadius: 15,
-    elevation: 10,
   },
-  glowLineTail: {
+  sweepContainer: {
+    position: 'absolute',
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sweepLight: {
     position: 'absolute',
     backgroundColor: Colors.primary,
-    borderRadius: 1.5,
-    shadowColor: Colors.primary,
+    shadowColor: '#ffffff',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  outerRing: {
-    position: 'absolute',
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: 'rgba(220, 38, 38, 0.3)',
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
   },
   container: {
     alignItems: 'center',
@@ -243,5 +247,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     tintColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 15,
   },
 });
