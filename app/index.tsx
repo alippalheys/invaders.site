@@ -338,7 +338,7 @@ export default function HomeScreen() {
             <View style={styles.logoContainer}>
               <View style={styles.logoGlow} />
               <Image
-                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/mayksiynf9mps3sykzxn4' }}
+                source={require('@/assets/images/logo.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
@@ -684,7 +684,7 @@ export default function HomeScreen() {
             <View style={styles.footerLogoContainer}>
               <View style={styles.footerLogoGlow} />
               <Image
-                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/mayksiynf9mps3sykzxn4' }}
+                source={require('@/assets/images/logo.png')}
                 style={styles.footerLogoImage}
                 resizeMode="contain"
               />
