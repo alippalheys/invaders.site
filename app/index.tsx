@@ -112,13 +112,13 @@ export default function HomeScreen() {
     const zoomAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(logoZoom, {
-          toValue: 1.08,
-          duration: 2000,
+          toValue: 1.18,
+          duration: 2500,
           useNativeDriver: false,
         }),
         Animated.timing(logoZoom, {
           toValue: 1,
-          duration: 2000,
+          duration: 2500,
           useNativeDriver: false,
         }),
       ])
@@ -1279,8 +1279,8 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 200,
-    height: 200,
+    width: 280,
+    height: 280,
   },
   logoGlow: {
     position: 'absolute',
@@ -1303,8 +1303,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderGlow,
   },
   logoImage: {
-    width: 180,
-    height: 180,
+    width: 260,
+    height: 260,
   },
   clubName: {
     fontSize: 38,
