@@ -7,6 +7,7 @@ export interface MerchItem {
   id: string;
   name: string;
   price: string;
+  kidsPrice: string;
   image: string;
 }
 
@@ -24,11 +25,30 @@ export interface BankTransferInfo {
   accountNumber: string;
 }
 
+export interface SizeGuideAdult {
+  size: string;
+  chest: string;
+  length: string;
+  shoulder: string;
+}
+
+export interface SizeGuideKids {
+  size: string;
+  chest: string;
+  length: string;
+  age: string;
+}
+
+export interface SizeGuide {
+  adult: SizeGuideAdult[];
+  kids: SizeGuideKids[];
+}
+
 const DEFAULT_MERCH: MerchItem[] = [
-  { id: '1', name: 'Invaders Jersey', price: 'MVR 450', image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/178mqg61am4g21236pwuw' },
-  { id: '2', name: 'Training Tee', price: 'MVR 350', image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/34uyhij0bcupj5bflvvl4' },
-  { id: '3', name: 'Classic Black', price: 'MVR 400', image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/k8fftgqvhhmfvknwursfz' },
-  { id: '4', name: 'Away Kit', price: 'MVR 500', image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/whfnttw8z01twziof2p42' },
+  { id: '1', name: 'Invaders Jersey', price: 'MVR 450', kidsPrice: 'MVR 350', image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/178mqg61am4g21236pwuw' },
+  { id: '2', name: 'Training Tee', price: 'MVR 350', kidsPrice: 'MVR 250', image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/34uyhij0bcupj5bflvvl4' },
+  { id: '3', name: 'Classic Black', price: 'MVR 400', kidsPrice: 'MVR 300', image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/k8fftgqvhhmfvknwursfz' },
+  { id: '4', name: 'Away Kit', price: 'MVR 500', kidsPrice: 'MVR 400', image: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/whfnttw8z01twziof2p42' },
 ];
 
 const DEFAULT_HEROES: Hero[] = [
@@ -76,6 +96,15 @@ export const [AppContentProvider, useAppContent] = createContextHook(() => {
     throwOnError: false,
   });
 
+  const sizeGuideQuery = trpc.settings.getSizeGuide.useQuery(undefined, {
+    staleTime: 1000 * 60 * 5,
+    retry: 0,
+    retryDelay: 500,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    throwOnError: false,
+  });
+
   const createMerchMutation = trpc.merch.create.useMutation({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [['merch', 'getAll']] });
@@ -115,6 +144,12 @@ export const [AppContentProvider, useAppContent] = createContextHook(() => {
   const updateSettingsMutation = trpc.settings.update.useMutation({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [['settings', 'get']] });
+    },
+  });
+
+  const updateSizeGuideMutation = trpc.settings.updateSizeGuide.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [['settings', 'getSizeGuide']] });
     },
   });
 
@@ -186,6 +221,18 @@ export const [AppContentProvider, useAppContent] = createContextHook(() => {
     }
   }, [updateSettingsMutation]);
 
+  const updateSizeGuide = useCallback(async (guide: SizeGuide) => {
+    try {
+      console.log('[AppContentContext] Updating size guide...', guide);
+      const result = await updateSizeGuideMutation.mutateAsync(guide);
+      console.log('[AppContentContext] Size guide updated successfully:', result);
+      return result;
+    } catch (error: any) {
+      console.error('[AppContentContext] Failed to update size guide:', error);
+      throw error;
+    }
+  }, [updateSizeGuideMutation]);
+
   const merchItems = merchQuery.data && merchQuery.data.length > 0 
     ? merchQuery.data 
     : DEFAULT_MERCH;
@@ -200,10 +247,30 @@ export const [AppContentProvider, useAppContent] = createContextHook(() => {
     accountNumber: '7730000123456',
   };
 
+  const sizeGuide: SizeGuide = sizeGuideQuery.data || {
+    adult: [
+      { size: 'XS', chest: '34"', length: '26"', shoulder: '16"' },
+      { size: 'S', chest: '36"', length: '27"', shoulder: '17"' },
+      { size: 'M', chest: '38"', length: '28"', shoulder: '18"' },
+      { size: 'L', chest: '40"', length: '29"', shoulder: '19"' },
+      { size: 'XL', chest: '42"', length: '30"', shoulder: '20"' },
+      { size: 'XXL', chest: '44"', length: '31"', shoulder: '21"' },
+    ],
+    kids: [
+      { size: '4', chest: '22"', length: '16"', age: '3-4' },
+      { size: '6', chest: '24"', length: '18"', age: '5-6' },
+      { size: '8', chest: '26"', length: '20"', age: '7-8' },
+      { size: '10', chest: '28"', length: '22"', age: '9-10' },
+      { size: '12', chest: '30"', length: '24"', age: '11-12' },
+      { size: '14', chest: '32"', length: '25"', age: '13-14' },
+    ],
+  };
+
   return {
     merchItems,
     heroes,
     bankInfo,
+    sizeGuide,
     isLoading: merchQuery.isLoading || heroesQuery.isLoading,
     addMerchItem,
     updateMerchItem,
@@ -212,10 +279,12 @@ export const [AppContentProvider, useAppContent] = createContextHook(() => {
     updateHero: updateHeroItem,
     deleteHero: deleteHeroItem,
     updateBankInfo,
+    updateSizeGuide,
     refetch: () => {
       merchQuery.refetch();
       heroesQuery.refetch();
       settingsQuery.refetch();
+      sizeGuideQuery.refetch();
     },
   };
 });

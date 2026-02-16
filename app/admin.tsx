@@ -74,6 +74,7 @@ export default function AdminScreen() {
     merchItems, 
     heroes, 
     bankInfo,
+    sizeGuide,
     addMerchItem, 
     updateMerchItem, 
     deleteMerchItem,
@@ -81,6 +82,7 @@ export default function AdminScreen() {
     updateHero,
     deleteHero,
     updateBankInfo,
+    updateSizeGuide,
   } = useAppContent();
   
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -100,6 +102,7 @@ export default function AdminScreen() {
   const [editingMerch, setEditingMerch] = useState<MerchItem | null>(null);
   const [merchName, setMerchName] = useState('');
   const [merchPrice, setMerchPrice] = useState('');
+  const [merchKidsPrice, setMerchKidsPrice] = useState('');
   const [merchImage, setMerchImage] = useState('');
   
   const [showHeroModal, setShowHeroModal] = useState(false);
@@ -113,6 +116,9 @@ export default function AdminScreen() {
   const [bankName, setBankName] = useState('');
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
+  
+  const [showSizeGuideModal, setShowSizeGuideModal] = useState(false);
+  const [editingSizeGuide, setEditingSizeGuide] = useState<typeof sizeGuide | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -227,6 +233,7 @@ export default function AdminScreen() {
     setEditingMerch(null);
     setMerchName('');
     setMerchPrice('');
+    setMerchKidsPrice('');
     setMerchImage('');
     setShowMerchModal(true);
   };
@@ -235,6 +242,7 @@ export default function AdminScreen() {
     setEditingMerch(item);
     setMerchName(item.name);
     setMerchPrice(item.price);
+    setMerchKidsPrice(item.kidsPrice || item.price);
     setMerchImage(item.image);
     setShowMerchModal(true);
   };
@@ -250,12 +258,14 @@ export default function AdminScreen() {
         await updateMerchItem(editingMerch.id, {
           name: merchName.trim(),
           price: merchPrice.trim(),
+          kidsPrice: merchKidsPrice.trim() || merchPrice.trim(),
           image: merchImage.trim(),
         });
       } else {
         await addMerchItem({
           name: merchName.trim(),
           price: merchPrice.trim(),
+          kidsPrice: merchKidsPrice.trim() || merchPrice.trim(),
           image: merchImage.trim(),
         });
       }
@@ -376,6 +386,37 @@ export default function AdminScreen() {
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to save bank information');
     }
+  };
+
+  const openEditSizeGuide = () => {
+    setEditingSizeGuide(JSON.parse(JSON.stringify(sizeGuide)));
+    setShowSizeGuideModal(true);
+  };
+
+  const handleSaveSizeGuide = async () => {
+    if (!editingSizeGuide) return;
+    
+    try {
+      await updateSizeGuide(editingSizeGuide);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setShowSizeGuideModal(false);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to save size guide');
+    }
+  };
+
+  const updateAdultSize = (index: number, field: string, value: string) => {
+    if (!editingSizeGuide) return;
+    const updated = { ...editingSizeGuide };
+    updated.adult[index] = { ...updated.adult[index], [field]: value };
+    setEditingSizeGuide(updated);
+  };
+
+  const updateKidsSize = (index: number, field: string, value: string) => {
+    if (!editingSizeGuide) return;
+    const updated = { ...editingSizeGuide };
+    updated.kids[index] = { ...updated.kids[index], [field]: value };
+    setEditingSizeGuide(updated);
   };
 
   const generateOrdersHTML = () => {
@@ -770,7 +811,7 @@ export default function AdminScreen() {
             <Image source={{ uri: item.image }} style={styles.itemImage} />
             <View style={styles.itemInfo}>
               <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemPrice}>{item.price}</Text>
+              <Text style={styles.itemPrice}>{item.price} / Kids: {item.kidsPrice}</Text>
             </View>
             <View style={styles.itemActions}>
               <TouchableOpacity
@@ -898,6 +939,36 @@ export default function AdminScreen() {
         <TouchableOpacity style={styles.editSettingsButton} onPress={openEditSettings}>
           <Edit3 size={18} color={Colors.textPrimary} />
           <Text style={styles.editSettingsButtonText}>Edit Bank Information</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.settingsSection}>
+        <View style={styles.settingsSectionHeader}>
+          <Shirt size={20} color={Colors.primary} />
+          <Text style={styles.settingsSectionTitle}>Size Guide</Text>
+        </View>
+        <Text style={styles.settingsSectionDesc}>
+          Customize the size guide shown to customers during checkout
+        </Text>
+
+        <View style={styles.settingsCard}>
+          <Text style={styles.sizeGuidePreviewTitle}>Adult Sizes</Text>
+          <View style={styles.sizeGuidePreviewRow}>
+            {sizeGuide.adult.slice(0, 3).map((s, i) => (
+              <Text key={i} style={styles.sizeGuidePreviewItem}>{s.size}: {s.chest}</Text>
+            ))}
+          </View>
+          <Text style={[styles.sizeGuidePreviewTitle, { marginTop: 12 }]}>Kids Sizes</Text>
+          <View style={styles.sizeGuidePreviewRow}>
+            {sizeGuide.kids.slice(0, 3).map((s, i) => (
+              <Text key={i} style={styles.sizeGuidePreviewItem}>{s.size}: {s.chest}</Text>
+            ))}
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.editSettingsButton} onPress={openEditSizeGuide}>
+          <Edit3 size={18} color={Colors.textPrimary} />
+          <Text style={styles.editSettingsButtonText}>Edit Size Guide</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -1166,7 +1237,7 @@ export default function AdminScreen() {
             <View style={styles.inputGroup}>
               <View style={styles.inputLabel}>
                 <DollarSign size={16} color={Colors.textMuted} />
-                <Text style={styles.inputLabelText}>Price</Text>
+                <Text style={styles.inputLabelText}>Adult Price</Text>
               </View>
               <TextInput
                 style={styles.input}
@@ -1174,6 +1245,20 @@ export default function AdminScreen() {
                 placeholderTextColor={Colors.textMuted}
                 value={merchPrice}
                 onChangeText={setMerchPrice}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={styles.inputLabel}>
+                <DollarSign size={16} color={Colors.textMuted} />
+                <Text style={styles.inputLabelText}>Kids Price</Text>
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. MVR 350 (optional, defaults to adult price)"
+                placeholderTextColor={Colors.textMuted}
+                value={merchKidsPrice}
+                onChangeText={setMerchKidsPrice}
               />
             </View>
 
@@ -1395,6 +1480,123 @@ export default function AdminScreen() {
             </TouchableOpacity>
           </View>
             </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        visible={showSizeGuideModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSizeGuideModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSizeGuideModal(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.sizeGuideModalContent}>
+              <View style={styles.formModalHeader}>
+                <Text style={styles.formModalTitle}>Edit Size Guide</Text>
+                <TouchableOpacity onPress={() => setShowSizeGuideModal(false)}>
+                  <X size={22} color={Colors.textMuted} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.sizeGuideScroll} showsVerticalScrollIndicator={false}>
+                <Text style={styles.sizeGuideSectionTitle}>Adult Sizes</Text>
+                {editingSizeGuide?.adult.map((item, index) => (
+                  <View key={index} style={styles.sizeGuideEditRow}>
+                    <View style={styles.sizeGuideEditCell}>
+                      <Text style={styles.sizeGuideEditLabel}>Size</Text>
+                      <TextInput
+                        style={styles.sizeGuideInput}
+                        value={item.size}
+                        onChangeText={(v) => updateAdultSize(index, 'size', v)}
+                        placeholderTextColor={Colors.textMuted}
+                      />
+                    </View>
+                    <View style={styles.sizeGuideEditCell}>
+                      <Text style={styles.sizeGuideEditLabel}>Chest</Text>
+                      <TextInput
+                        style={styles.sizeGuideInput}
+                        value={item.chest}
+                        onChangeText={(v) => updateAdultSize(index, 'chest', v)}
+                        placeholderTextColor={Colors.textMuted}
+                      />
+                    </View>
+                    <View style={styles.sizeGuideEditCell}>
+                      <Text style={styles.sizeGuideEditLabel}>Length</Text>
+                      <TextInput
+                        style={styles.sizeGuideInput}
+                        value={item.length}
+                        onChangeText={(v) => updateAdultSize(index, 'length', v)}
+                        placeholderTextColor={Colors.textMuted}
+                      />
+                    </View>
+                    <View style={styles.sizeGuideEditCell}>
+                      <Text style={styles.sizeGuideEditLabel}>Shoulder</Text>
+                      <TextInput
+                        style={styles.sizeGuideInput}
+                        value={item.shoulder}
+                        onChangeText={(v) => updateAdultSize(index, 'shoulder', v)}
+                        placeholderTextColor={Colors.textMuted}
+                      />
+                    </View>
+                  </View>
+                ))}
+
+                <Text style={[styles.sizeGuideSectionTitle, { marginTop: 20 }]}>Kids Sizes</Text>
+                {editingSizeGuide?.kids.map((item, index) => (
+                  <View key={index} style={styles.sizeGuideEditRow}>
+                    <View style={styles.sizeGuideEditCell}>
+                      <Text style={styles.sizeGuideEditLabel}>Size</Text>
+                      <TextInput
+                        style={styles.sizeGuideInput}
+                        value={item.size}
+                        onChangeText={(v) => updateKidsSize(index, 'size', v)}
+                        placeholderTextColor={Colors.textMuted}
+                      />
+                    </View>
+                    <View style={styles.sizeGuideEditCell}>
+                      <Text style={styles.sizeGuideEditLabel}>Chest</Text>
+                      <TextInput
+                        style={styles.sizeGuideInput}
+                        value={item.chest}
+                        onChangeText={(v) => updateKidsSize(index, 'chest', v)}
+                        placeholderTextColor={Colors.textMuted}
+                      />
+                    </View>
+                    <View style={styles.sizeGuideEditCell}>
+                      <Text style={styles.sizeGuideEditLabel}>Length</Text>
+                      <TextInput
+                        style={styles.sizeGuideInput}
+                        value={item.length}
+                        onChangeText={(v) => updateKidsSize(index, 'length', v)}
+                        placeholderTextColor={Colors.textMuted}
+                      />
+                    </View>
+                    <View style={styles.sizeGuideEditCell}>
+                      <Text style={styles.sizeGuideEditLabel}>Age</Text>
+                      <TextInput
+                        style={styles.sizeGuideInput}
+                        value={item.age}
+                        onChangeText={(v) => updateKidsSize(index, 'age', v)}
+                        placeholderTextColor={Colors.textMuted}
+                      />
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+
+              <TouchableOpacity style={styles.saveButton} onPress={handleSaveSizeGuide}>
+                <Text style={styles.saveButtonText}>Save Size Guide</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
     </View>
@@ -2111,5 +2313,66 @@ const styles = StyleSheet.create({
   },
   addButtonTextDisabled: {
     color: Colors.textMuted,
+  },
+  sizeGuidePreviewTitle: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textMuted,
+    marginBottom: 6,
+  },
+  sizeGuidePreviewRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  sizeGuidePreviewItem: {
+    fontSize: 13,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.backgroundElevated,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  sizeGuideModalContent: {
+    width: width - 32,
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    maxHeight: '90%',
+  },
+  sizeGuideScroll: {
+    maxHeight: 400,
+    marginBottom: 16,
+  },
+  sizeGuideSectionTitle: {
+    fontSize: 15,
+    fontWeight: '700' as const,
+    color: Colors.textPrimary,
+    marginBottom: 12,
+  },
+  sizeGuideEditRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  sizeGuideEditCell: {
+    flex: 1,
+  },
+  sizeGuideEditLabel: {
+    fontSize: 10,
+    color: Colors.textMuted,
+    marginBottom: 4,
+  },
+  sizeGuideInput: {
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: 8,
+    padding: 8,
+    fontSize: 13,
+    color: Colors.textPrimary,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    textAlign: 'center',
   },
 });

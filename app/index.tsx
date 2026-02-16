@@ -70,7 +70,7 @@ const KIDS_SIZES = ['4', '6', '8', '10', '12', '14'];
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { addOrder } = useOrders();
-  const { merchItems, heroes, bankInfo } = useAppContent();
+  const { merchItems, heroes, bankInfo, sizeGuide } = useAppContent();
   const [visibleHeroesCount, setVisibleHeroesCount] = useState(15);
   const [showSplash, setShowSplash] = useState(true);
   const splashLogoScale = useRef(new Animated.Value(0.3)).current;
@@ -264,7 +264,7 @@ export default function HomeScreen() {
     const newItem: OrderItem = {
       productName: selectedMerch.name,
       productImage: selectedMerch.image,
-      price: selectedMerch.price,
+      price: currentSizeCategory === 'kids' ? selectedMerch.kidsPrice : selectedMerch.price,
       size: currentSize,
       sizeCategory: currentSizeCategory,
       sleeveType: currentSleeveType,
@@ -872,7 +872,14 @@ export default function HomeScreen() {
                   style={styles.modalProductImage}
                   resizeMode="cover"
                 />
-                <Text style={styles.modalProductPrice}>{selectedMerch?.price ? formatPrice(selectedMerch.price) : ''}</Text>
+                <Text style={styles.modalProductPrice}>
+                  {selectedMerch ? formatPrice(currentSizeCategory === 'kids' ? selectedMerch.kidsPrice : selectedMerch.price) : ''}
+                </Text>
+                {selectedMerch && selectedMerch.price !== selectedMerch.kidsPrice && (
+                  <Text style={styles.modalPriceHint}>
+                    Adult: {formatPrice(selectedMerch.price)} | Kids: {formatPrice(selectedMerch.kidsPrice)}
+                  </Text>
+                )}
               </View>
 
               <TouchableOpacity
@@ -898,42 +905,14 @@ export default function HomeScreen() {
                       <Text style={[styles.sizeGuideCell, styles.sizeGuideHeaderCell]}>Length</Text>
                       <Text style={[styles.sizeGuideCell, styles.sizeGuideHeaderCell]}>Shoulder</Text>
                     </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>XS</Text>
-                      <Text style={styles.sizeGuideCell}>34&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>26&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>16&quot;</Text>
-                    </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>S</Text>
-                      <Text style={styles.sizeGuideCell}>36&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>27&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>17&quot;</Text>
-                    </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>M</Text>
-                      <Text style={styles.sizeGuideCell}>38&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>28&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>18&quot;</Text>
-                    </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>L</Text>
-                      <Text style={styles.sizeGuideCell}>40&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>29&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>19&quot;</Text>
-                    </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>XL</Text>
-                      <Text style={styles.sizeGuideCell}>42&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>30&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>20&quot;</Text>
-                    </View>
-                    <View style={[styles.sizeGuideRow, styles.sizeGuideLastRow]}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>XXL</Text>
-                      <Text style={styles.sizeGuideCell}>44&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>31&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>21&quot;</Text>
-                    </View>
+                    {sizeGuide.adult.map((item, index) => (
+                      <View key={item.size} style={[styles.sizeGuideRow, index === sizeGuide.adult.length - 1 && styles.sizeGuideLastRow]}>
+                        <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>{item.size}</Text>
+                        <Text style={styles.sizeGuideCell}>{item.chest}</Text>
+                        <Text style={styles.sizeGuideCell}>{item.length}</Text>
+                        <Text style={styles.sizeGuideCell}>{item.shoulder}</Text>
+                      </View>
+                    ))}
                   </View>
 
                   <Text style={styles.sizeGuideSubtitle}>Kids Sizes</Text>
@@ -944,42 +923,14 @@ export default function HomeScreen() {
                       <Text style={[styles.sizeGuideCell, styles.sizeGuideHeaderCell]}>Length</Text>
                       <Text style={[styles.sizeGuideCell, styles.sizeGuideHeaderCell]}>Age</Text>
                     </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>4</Text>
-                      <Text style={styles.sizeGuideCell}>22&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>16&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>3-4</Text>
-                    </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>6</Text>
-                      <Text style={styles.sizeGuideCell}>24&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>18&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>5-6</Text>
-                    </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>8</Text>
-                      <Text style={styles.sizeGuideCell}>26&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>20&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>7-8</Text>
-                    </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>10</Text>
-                      <Text style={styles.sizeGuideCell}>28&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>22&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>9-10</Text>
-                    </View>
-                    <View style={styles.sizeGuideRow}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>12</Text>
-                      <Text style={styles.sizeGuideCell}>30&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>24&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>11-12</Text>
-                    </View>
-                    <View style={[styles.sizeGuideRow, styles.sizeGuideLastRow]}>
-                      <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>14</Text>
-                      <Text style={styles.sizeGuideCell}>32&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>25&quot;</Text>
-                      <Text style={styles.sizeGuideCell}>13-14</Text>
-                    </View>
+                    {sizeGuide.kids.map((item, index) => (
+                      <View key={item.size} style={[styles.sizeGuideRow, index === sizeGuide.kids.length - 1 && styles.sizeGuideLastRow]}>
+                        <Text style={[styles.sizeGuideCell, styles.sizeLabelCell, styles.sizeLabelText]}>{item.size}</Text>
+                        <Text style={styles.sizeGuideCell}>{item.chest}</Text>
+                        <Text style={styles.sizeGuideCell}>{item.length}</Text>
+                        <Text style={styles.sizeGuideCell}>{item.age}</Text>
+                      </View>
+                    ))}
                   </View>
 
                   <Text style={styles.sizeGuideNote}>All measurements are in inches</Text>
@@ -1184,7 +1135,7 @@ export default function HomeScreen() {
               <View style={styles.orderFormCompact}>
                 <Text style={styles.orderFormTitleCompact}>Your Details</Text>
                 <View style={styles.orderFormRow}>
-                  <View style={[styles.inputContainerCompact, { flex: 1, marginRight: 8 }]}>
+                  <View style={[styles.inputContainerCompact, styles.inputContainerFlex]}>
                     <User size={16} color={Colors.textMuted} style={styles.inputIconCompact} />
                     <TextInput
                       style={styles.inputCompact}
@@ -1192,9 +1143,10 @@ export default function HomeScreen() {
                       placeholderTextColor={Colors.textMuted}
                       value={orderName}
                       onChangeText={setOrderName}
+                      numberOfLines={1}
                     />
                   </View>
-                  <View style={[styles.inputContainerCompact, { flex: 1 }]}>
+                  <View style={[styles.inputContainerCompact, styles.inputContainerFlex]}>
                     <Phone size={16} color={Colors.textMuted} style={styles.inputIconCompact} />
                     <TextInput
                       style={styles.inputCompact}
@@ -1203,6 +1155,7 @@ export default function HomeScreen() {
                       value={orderPhone}
                       onChangeText={setOrderPhone}
                       keyboardType="phone-pad"
+                      numberOfLines={1}
                     />
                   </View>
                 </View>
@@ -2079,6 +2032,11 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginTop: 8,
   },
+  modalPriceHint: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    marginTop: 4,
+  },
   sizeGuideToggle: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2264,6 +2222,7 @@ const styles = StyleSheet.create({
   },
   orderFormRow: {
     flexDirection: 'row',
+    gap: 8,
   },
   inputContainerCompact: {
     flexDirection: 'row',
@@ -2273,15 +2232,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: 10,
+    overflow: 'hidden',
   },
   inputIconCompact: {
     marginRight: 8,
+    flexShrink: 0,
   },
   inputCompact: {
     flex: 1,
     height: 42,
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textPrimary,
+    minWidth: 0,
+    paddingRight: 4,
+  },
+  inputContainerFlex: {
+    flex: 1,
+    minWidth: 0,
   },
   submitButton: {
     borderRadius: 14,

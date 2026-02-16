@@ -28,6 +28,7 @@ export const merchRouter = createTRPCRouter({
         id: item.id,
         name: item.name,
         price: item.price,
+        kidsPrice: item.kids_price || item.price,
         image: item.image,
       }));
     } catch (error) {
@@ -41,6 +42,7 @@ export const merchRouter = createTRPCRouter({
       z.object({
         name: z.string(),
         price: z.string(),
+        kidsPrice: z.string().optional(),
         image: z.string(),
       })
     )
@@ -51,6 +53,7 @@ export const merchRouter = createTRPCRouter({
           .insert({
             name: input.name,
             price: input.price,
+            kids_price: input.kidsPrice || input.price,
             image: input.image,
           })
           .select()
@@ -65,6 +68,7 @@ export const merchRouter = createTRPCRouter({
           id: data.id,
           name: data.name,
           price: data.price,
+          kidsPrice: data.kids_price || data.price,
           image: data.image,
         };
       } catch (error: any) {
@@ -79,13 +83,15 @@ export const merchRouter = createTRPCRouter({
         id: z.string(),
         name: z.string().optional(),
         price: z.string().optional(),
+        kidsPrice: z.string().optional(),
         image: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
       try {
         console.log("[Merch] Updating merch item:", input.id);
-        const { id, ...updates } = input;
+        const { id, kidsPrice, ...rest } = input;
+        const updates = { ...rest, ...(kidsPrice !== undefined ? { kids_price: kidsPrice } : {}) };
         
         const result = await supabase
           .from("merch_items")
@@ -110,6 +116,7 @@ export const merchRouter = createTRPCRouter({
           id: result.data.id,
           name: result.data.name,
           price: result.data.price,
+          kidsPrice: result.data.kids_price || result.data.price,
           image: result.data.image,
         };
       } catch (error: any) {
