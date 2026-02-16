@@ -388,7 +388,7 @@ export default function HomeScreen() {
           }]}>
             <View style={styles.splashLogoGlow} />
             <Image
-              source={require('@/assets/images/splash-logo.png')}
+              source={require('@/assets/images/splash-logo-new.png')}
               style={styles.splashLogo}
               resizeMode="contain"
             />
