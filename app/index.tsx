@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Animated,
   ScrollView,
@@ -28,6 +28,7 @@ import {
   Calendar,
   Target,
   ChevronDown,
+  ChevronRight,
   ShoppingBag,
   Shirt,
   X,
@@ -70,6 +71,22 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { addOrder } = useOrders();
   const { merchItems, heroes, bankInfo } = useAppContent();
+  const [visibleHeroesCount, setVisibleHeroesCount] = useState(15);
+
+  const shuffledHeroes = useMemo(() => {
+    const shuffled = [...heroes];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [heroes]);
+
+  const displayedHeroes = useMemo(() => {
+    return shuffledHeroes.slice(0, visibleHeroesCount);
+  }, [shuffledHeroes, visibleHeroesCount]);
+
+  const hasMoreHeroes = visibleHeroesCount < shuffledHeroes.length;
   const scrollY = useRef(new Animated.Value(0)).current;
   const heroOpacity = useRef(new Animated.Value(0)).current;
   const heroScale = useRef(new Animated.Value(0.9)).current;
@@ -546,7 +563,7 @@ export default function HomeScreen() {
           <Text style={styles.heroesSubtitle}>The Pride of Invaders</Text>
 
           <View style={styles.playersGrid}>
-            {heroes.map((player: Hero, index: number) => (
+            {displayedHeroes.map((player: Hero, index: number) => (
               <TouchableCard
                 key={player.id}
                 style={styles.playerCard}
@@ -577,6 +594,20 @@ export default function HomeScreen() {
               </TouchableCard>
             ))}
           </View>
+
+          {hasMoreHeroes && (
+            <TouchableOpacity
+              style={styles.seeMoreButton}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setVisibleHeroesCount(prev => prev + 15);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.seeMoreText}>See More Heroes</Text>
+              <ChevronRight size={18} color={Colors.primary} />
+            </TouchableOpacity>
+          )}
         </Animated.View>
 
         <Animated.View
@@ -1805,6 +1836,24 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600' as const,
     letterSpacing: 0.5,
+  },
+  seeMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    marginTop: 16,
+    gap: 8,
+  },
+  seeMoreText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.primary,
   },
   uploadSlipButton: {
     backgroundColor: Colors.backgroundElevated,
