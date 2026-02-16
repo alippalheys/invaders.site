@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Image, View, Easing } from 'react-native';
-import Colors from '@/constants/colors';
+import { Animated, StyleSheet, Image, View, Easing, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface PulsingLogoProps {
   size?: number;
@@ -8,178 +8,221 @@ interface PulsingLogoProps {
   opacity?: number;
 }
 
+const GLOW_COLORS = {
+  border: ['rgba(255, 124, 171, 1)', 'rgba(63, 100, 199, 1)', 'rgba(240, 115, 46, 1)'],
+  glow1: ['#f82fc6', '#5a4ff9', '#ff923e'],
+  glow2: ['rgba(255, 89, 213, 1)', 'rgba(63, 89, 255, 1)', 'rgba(255, 164, 0, 1)'],
+};
+
 const LOGO_URI = 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/mayksiynf9mps3sykzxn4';
 
 export default function PulsingLogo({ size = 200, delay = 0, opacity = 0.15 }: PulsingLogoProps) {
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const scaleAnim = useRef(new Animated.Value(0.98)).current;
   const opacityAnim = useRef(new Animated.Value(opacity)).current;
-  const glowIntensity = useRef(new Animated.Value(0.4)).current;
-  const sweepPosition = useRef(new Animated.Value(0)).current;
-  const glowPulse = useRef(new Animated.Value(0.6)).current;
+  const rotationAnim = useRef(new Animated.Value(0)).current;
+  const glowOpacity1 = useRef(new Animated.Value(0.1)).current;
+  const glowOpacity2 = useRef(new Animated.Value(0.5)).current;
 
   useEffect(() => {
     const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.parallel([
           Animated.timing(scaleAnim, {
-            toValue: 1.05,
-            duration: 4500,
+            toValue: 1.02,
+            duration: 3000,
             delay,
-            useNativeDriver: false,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
           }),
           Animated.timing(opacityAnim, {
-            toValue: opacity * 0.5,
-            duration: 4500,
+            toValue: opacity * 0.7,
+            duration: 3000,
             delay,
-            useNativeDriver: false,
-          }),
-          Animated.timing(glowIntensity, {
-            toValue: 0.8,
-            duration: 4500,
-            delay,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
         ]),
         Animated.parallel([
           Animated.timing(scaleAnim, {
-            toValue: 0.95,
-            duration: 4500,
-            useNativeDriver: false,
+            toValue: 0.98,
+            duration: 3000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
           }),
           Animated.timing(opacityAnim, {
             toValue: opacity,
-            duration: 4500,
-            useNativeDriver: false,
-          }),
-          Animated.timing(glowIntensity, {
-            toValue: 0.4,
-            duration: 4500,
-            useNativeDriver: false,
+            duration: 3000,
+            useNativeDriver: true,
           }),
         ]),
       ])
     );
 
-    const sweepAnimation = Animated.loop(
-      Animated.timing(sweepPosition, {
+    const rotationAnimation = Animated.loop(
+      Animated.timing(rotationAnim, {
         toValue: 1,
-        duration: 2500,
+        duration: 4000,
         easing: Easing.linear,
-        useNativeDriver: false,
+        useNativeDriver: true,
       })
     );
 
     const glowPulseAnimation = Animated.loop(
       Animated.sequence([
-        Animated.timing(glowPulse, {
-          toValue: 1,
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-        Animated.timing(glowPulse, {
-          toValue: 0.5,
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
+        Animated.parallel([
+          Animated.timing(glowOpacity1, {
+            toValue: 0.14,
+            duration: 1500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowOpacity2, {
+            toValue: 0.7,
+            duration: 1500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(glowOpacity1, {
+            toValue: 0.1,
+            duration: 1500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowOpacity2, {
+            toValue: 0.5,
+            duration: 1500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
       ])
     );
 
     pulseAnimation.start();
-    sweepAnimation.start();
+    rotationAnimation.start();
     glowPulseAnimation.start();
 
     return () => {
       pulseAnimation.stop();
-      sweepAnimation.stop();
+      rotationAnimation.stop();
       glowPulseAnimation.stop();
     };
-  }, [delay, scaleAnim, opacityAnim, glowIntensity, opacity, sweepPosition, glowPulse]);
+  }, [delay, scaleAnim, opacityAnim, rotationAnim, opacity, glowOpacity1, glowOpacity2]);
 
-  const sweepTranslateX = sweepPosition.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [-size * 0.8, 0, size * 0.8],
+  const rotation = rotationAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
   });
 
-  const sweepOpacity = sweepPosition.interpolate({
-    inputRange: [0, 0.2, 0.5, 0.8, 1],
-    outputRange: [0, 1, 1, 1, 0],
-  });
+  const glowSize = size * 1.25;
+  const borderWidth = 4;
 
   return (
-    <View style={[styles.wrapper, { width: size, height: size }]}>
-      {/* Outer glow layers - following logo shape */}
+    <View style={[styles.wrapper, { width: glowSize, height: glowSize }]}>
+      {/* Outer glow layer 1 - large soft glow */}
       <Animated.View
         style={[
-          styles.glowLayer,
+          styles.glowRing,
           {
-            width: size * 1.15,
-            height: size * 1.15,
-            opacity: Animated.multiply(glowIntensity, 0.3),
+            width: glowSize,
+            height: glowSize,
+            borderRadius: 70,
+            opacity: glowOpacity1,
+            transform: [{ rotate: rotation }],
           },
         ]}
       >
-        <Image
-          source={{ uri: LOGO_URI }}
-          style={[styles.glowImage, { shadowRadius: 25 }]}
-          resizeMode="contain"
-          blurRadius={8}
-        />
-      </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.glowLayer,
-          {
-            width: size * 1.1,
-            height: size * 1.1,
-            opacity: Animated.multiply(glowIntensity, 0.5),
-          },
-        ]}
-      >
-        <Image
-          source={{ uri: LOGO_URI }}
-          style={[styles.glowImage, { shadowRadius: 18 }]}
-          resizeMode="contain"
-          blurRadius={5}
-        />
-      </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.glowLayer,
-          {
-            width: size * 1.05,
-            height: size * 1.05,
-            opacity: Animated.multiply(glowIntensity, 0.7),
-          },
-        ]}
-      >
-        <Image
-          source={{ uri: LOGO_URI }}
-          style={[styles.glowImage, { shadowRadius: 12 }]}
-          resizeMode="contain"
-          blurRadius={3}
-        />
-      </Animated.View>
-
-      {/* Moving light sweep effect */}
-      <View style={[styles.sweepContainer, { width: size, height: size }]}>
-        <Animated.View
+        <LinearGradient
+          colors={GLOW_COLORS.glow1 as [string, string, ...string[]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={[
-            styles.sweepLight,
+            styles.gradientGlow,
             {
-              width: size * 0.3,
-              height: size * 1.2,
-              opacity: Animated.multiply(sweepOpacity, glowPulse),
-              transform: [{ translateX: sweepTranslateX }, { rotate: '15deg' }],
+              borderRadius: 70,
+              ...Platform.select({
+                ios: {
+                  shadowColor: GLOW_COLORS.glow1[0],
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 1,
+                  shadowRadius: 15,
+                },
+                android: {
+                  elevation: 15,
+                },
+              }),
             },
           ]}
         />
-      </View>
+      </Animated.View>
 
-      {/* Main logo with pulsing glow */}
+      {/* Outer glow layer 2 - smaller intense glow */}
+      <Animated.View
+        style={[
+          styles.glowRing,
+          {
+            width: size * 1.15,
+            height: size * 1.15,
+            borderRadius: 65,
+            opacity: glowOpacity2,
+            transform: [{ rotate: rotation }],
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={GLOW_COLORS.glow2 as [string, string, ...string[]]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={[
+            styles.gradientGlow,
+            {
+              borderRadius: 65,
+              ...Platform.select({
+                ios: {
+                  shadowColor: GLOW_COLORS.glow2[1],
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 1,
+                  shadowRadius: 5,
+                },
+                android: {
+                  elevation: 8,
+                },
+              }),
+            },
+          ]}
+        />
+      </Animated.View>
+
+      {/* Animated border ring */}
+      <Animated.View
+        style={[
+          styles.borderRing,
+          {
+            width: size * 1.08,
+            height: size * 1.08,
+            borderRadius: 60,
+            transform: [{ rotate: rotation }],
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={GLOW_COLORS.border as [string, string, ...string[]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            styles.borderGradient,
+            {
+              borderRadius: 60,
+              padding: borderWidth,
+            },
+          ]}
+        >
+          <View style={[styles.borderInner, { borderRadius: 56 }]} />
+        </LinearGradient>
+      </Animated.View>
+
+      {/* Main logo */}
       <Animated.View
         style={[
           styles.container,
@@ -191,14 +234,9 @@ export default function PulsingLogo({ size = 200, delay = 0, opacity = 0.15 }: P
           },
         ]}
       >
-        <Animated.Image
+        <Image
           source={{ uri: LOGO_URI }}
-          style={[
-            styles.logo,
-            {
-              shadowOpacity: glowPulse,
-            },
-          ]}
+          style={styles.logo}
           resizeMode="contain"
         />
       </Animated.View>
@@ -212,32 +250,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glowLayer: {
+  glowRing: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glowImage: {
+  gradientGlow: {
     width: '100%',
     height: '100%',
-    tintColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
   },
-  sweepContainer: {
+  borderRing: {
     position: 'absolute',
-    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sweepLight: {
-    position: 'absolute',
-    backgroundColor: Colors.primary,
-    shadowColor: '#ffffff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
+  borderGradient: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  borderInner: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: 'rgba(21, 21, 21, 1)',
   },
   container: {
     alignItems: 'center',
@@ -246,9 +282,5 @@ const styles = StyleSheet.create({
   logo: {
     width: '100%',
     height: '100%',
-    tintColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 15,
   },
 });
