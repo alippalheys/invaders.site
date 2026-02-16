@@ -102,7 +102,7 @@ export default function AdminScreen() {
   const [editingMerch, setEditingMerch] = useState<MerchItem | null>(null);
   const [merchName, setMerchName] = useState('');
   const [merchPrice, setMerchPrice] = useState('');
- const [merchKidsPrice, setMerchKidsPrice] = useState<number | null>(null);
+  const [merchKidsPrice, setMerchKidsPrice] = useState<number | null>(null);
   const [merchImage, setMerchImage] = useState('');
   
   const [showHeroModal, setShowHeroModal] = useState(false);
