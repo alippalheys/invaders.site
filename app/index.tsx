@@ -72,6 +72,10 @@ export default function HomeScreen() {
   const { addOrder } = useOrders();
   const { merchItems, heroes, bankInfo } = useAppContent();
   const [visibleHeroesCount, setVisibleHeroesCount] = useState(15);
+  const [showSplash, setShowSplash] = useState(true);
+  const splashLogoScale = useRef(new Animated.Value(0.3)).current;
+  const splashOpacity = useRef(new Animated.Value(1)).current;
+  const splashLogoOpacity = useRef(new Animated.Value(0)).current;
 
   const shuffledHeroes = useMemo(() => {
     const shuffled = [...heroes];
@@ -112,6 +116,61 @@ export default function HomeScreen() {
 
 
   useEffect(() => {
+    // Splash screen animation sequence
+    const runSplashAnimation = () => {
+      // Fade in the logo
+      Animated.timing(splashLogoOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: false,
+      }).start(() => {
+        // Zoom in with bounce
+        Animated.sequence([
+          Animated.spring(splashLogoScale, {
+            toValue: 1.2,
+            useNativeDriver: false,
+            tension: 40,
+            friction: 3,
+          }),
+          Animated.spring(splashLogoScale, {
+            toValue: 0.9,
+            useNativeDriver: false,
+            tension: 50,
+            friction: 5,
+          }),
+          Animated.spring(splashLogoScale, {
+            toValue: 1.1,
+            useNativeDriver: false,
+            tension: 60,
+            friction: 4,
+          }),
+          Animated.spring(splashLogoScale, {
+            toValue: 1,
+            useNativeDriver: false,
+            tension: 70,
+            friction: 6,
+          }),
+        ]).start(() => {
+          // Wait a moment then fade out splash
+          setTimeout(() => {
+            Animated.timing(splashOpacity, {
+              toValue: 0,
+              duration: 500,
+              useNativeDriver: false,
+            }).start(() => {
+              setShowSplash(false);
+            });
+          }, 400);
+        });
+      });
+    };
+
+    runSplashAnimation();
+  }, [splashLogoScale, splashOpacity, splashLogoOpacity]);
+
+  useEffect(() => {
+    if (showSplash) return;
+
     Animated.parallel([
       Animated.timing(heroOpacity, {
         toValue: 1,
@@ -143,7 +202,7 @@ export default function HomeScreen() {
     zoomAnimation.start();
 
     return () => zoomAnimation.stop();
-  }, [heroOpacity, heroScale, logoZoom]);
+  }, [heroOpacity, heroScale, logoZoom, showSplash]);
 
   const handleContactPress = (type: 'phone' | 'email' | 'instagram' | 'facebook') => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -315,6 +374,30 @@ export default function HomeScreen() {
     extrapolate: 'clamp',
   });
 
+  if (showSplash) {
+    return (
+      <View style={styles.splashContainer}>
+        <LinearGradient
+          colors={['#0a0a0a', '#1a0a0a', '#0a0a0a']}
+          style={StyleSheet.absoluteFill}
+        />
+        <Animated.View style={[styles.splashLogoContainer, { opacity: splashOpacity }]}>
+          <Animated.View style={[styles.splashLogoWrapper, { 
+            opacity: splashLogoOpacity,
+            transform: [{ scale: splashLogoScale }] 
+          }]}>
+            <View style={styles.splashLogoGlow} />
+            <Image
+              source={require('@/assets/images/splash-logo.png')}
+              style={styles.splashLogo}
+              resizeMode="contain"
+            />
+          </Animated.View>
+        </Animated.View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Image
@@ -329,8 +412,6 @@ export default function HomeScreen() {
         />
       </View>
       <View style={styles.backgroundVignette} />
-
-
 
       <ScrollView
         style={styles.scrollView}
@@ -1261,6 +1342,36 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  splashLogoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  splashLogoWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  splashLogoGlow: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'transparent',
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 60,
+    elevation: 30,
+  },
+  splashLogo: {
+    width: 220,
+    height: 260,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
