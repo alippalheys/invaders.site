@@ -64,7 +64,7 @@ const STATUS_CONFIG: Record<Order['status'], { label: string; color: string; ico
 };
 
 const STATUS_OPTIONS: Order['status'][] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
-const POSITION_OPTIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward', 'Substitute'];
+const POSITION_OPTIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward', 'Substitute', 'Captain', 'Coach', 'Manager'];
 
 export default function AdminScreen() {
   const insets = useSafeAreaInsets();
@@ -304,8 +304,8 @@ export default function AdminScreen() {
   };
 
   const handleSaveHero = async () => {
-    if (!heroName.trim() || !heroNumber.trim() || !heroPosition.trim() || !heroImage.trim()) {
-      Alert.alert('Missing Info', 'Please fill in all fields');
+    if (!heroName.trim() || !heroImage.trim()) {
+      Alert.alert('Missing Info', 'Please fill in name and image');
       return;
     }
     
@@ -835,10 +835,14 @@ export default function AdminScreen() {
             <View style={styles.itemInfo}>
               <Text style={styles.itemName}>{hero.name}</Text>
               <View style={styles.heroMeta}>
-                <View style={styles.heroBadge}>
-                  <Text style={styles.heroBadgeText}>#{hero.number}</Text>
-                </View>
-                <Text style={styles.heroPosition}>{hero.position}</Text>
+                {hero.number ? (
+                  <View style={styles.heroBadge}>
+                    <Text style={styles.heroBadgeText}>#{hero.number}</Text>
+                  </View>
+                ) : null}
+                {hero.position ? (
+                  <Text style={styles.heroPosition}>{hero.position}</Text>
+                ) : null}
               </View>
             </View>
             <View style={styles.itemActions}>
@@ -1244,7 +1248,7 @@ export default function AdminScreen() {
             <View style={styles.inputGroup}>
               <View style={styles.inputLabel}>
                 <Hash size={16} color={Colors.textMuted} />
-                <Text style={styles.inputLabelText}>Jersey Number</Text>
+                <Text style={styles.inputLabelText}>Jersey Number (Optional)</Text>
               </View>
               <TextInput
                 style={styles.input}
@@ -1259,8 +1263,15 @@ export default function AdminScreen() {
             <View style={styles.inputGroup}>
               <View style={styles.inputLabel}>
                 <Shield size={16} color={Colors.textMuted} />
-                <Text style={styles.inputLabelText}>Position</Text>
+                <Text style={styles.inputLabelText}>Position (Optional)</Text>
               </View>
+              <TextInput
+                style={[styles.input, { marginBottom: 10 }]}
+                placeholder="Enter custom position or select below"
+                placeholderTextColor={Colors.textMuted}
+                value={heroPosition}
+                onChangeText={setHeroPosition}
+              />
               <View style={styles.positionGrid}>
                 {POSITION_OPTIONS.map((pos) => (
                   <TouchableOpacity

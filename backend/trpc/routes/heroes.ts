@@ -27,8 +27,8 @@ export const heroesRouter = createTRPCRouter({
       return (data ?? []).map((hero: any) => ({
         id: hero.id,
         name: hero.name,
-        position: hero.position,
-        number: hero.number,
+        position: hero.position || '',
+        number: hero.number || '',
         image: hero.image,
       }));
     } catch (error) {
@@ -59,8 +59,8 @@ export const heroesRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string(),
-        position: z.string(),
-        number: z.string(),
+        position: z.string().optional().default(''),
+        number: z.string().optional().default(''),
         image: z.string(),
       })
     )
@@ -83,8 +83,8 @@ export const heroesRouter = createTRPCRouter({
           .from("heroes")
           .insert({
             name: input.name,
-            position: input.position,
-            number: input.number,
+            position: input.position || '',
+            number: input.number || '',
             image: input.image,
           })
           .select()
@@ -98,8 +98,8 @@ export const heroesRouter = createTRPCRouter({
         return {
           id: data.id,
           name: data.name,
-          position: data.position,
-          number: data.number,
+          position: data.position || '',
+          number: data.number || '',
           image: data.image,
         };
       } catch (error: any) {
@@ -145,8 +145,8 @@ export const heroesRouter = createTRPCRouter({
         return {
           id: result.data.id,
           name: result.data.name,
-          position: result.data.position,
-          number: result.data.number,
+          position: result.data.position || '',
+          number: result.data.number || '',
           image: result.data.image,
         };
       } catch (error: any) {

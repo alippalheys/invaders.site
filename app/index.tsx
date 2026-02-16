@@ -481,14 +481,14 @@ export default function HomeScreen() {
           </View>
 
           <AchievementCard
-            title="Slam Dunk Basket Champion"
-            year="2023"
+            title="MFC Tournament Champion"
+            year="2024"
             type="champion"
             delay={100}
           />
           <AchievementCard
-            title="MFC Tournament Champion"
-            year="2024"
+            title="Slam Dunk Basket Champion"
+            year="2023"
             type="champion"
             delay={200}
           />
@@ -547,13 +547,17 @@ export default function HomeScreen() {
                     colors={['transparent', 'rgba(0,0,0,0.9)']}
                     style={styles.playerImageOverlay}
                   />
-                  <View style={styles.playerNumber}>
-                    <Text style={styles.playerNumberText}>{player.number}</Text>
-                  </View>
+                  {player.number ? (
+                    <View style={styles.playerNumber}>
+                      <Text style={styles.playerNumberText}>{player.number}</Text>
+                    </View>
+                  ) : null}
                 </View>
                 <View style={styles.playerInfo}>
                   <Text style={styles.playerName} numberOfLines={1}>{player.name}</Text>
-                  <Text style={styles.playerPosition}>{player.position}</Text>
+                  {player.position ? (
+                    <Text style={styles.playerPosition}>{player.position}</Text>
+                  ) : null}
                 </View>
               </TouchableCard>
             ))}
@@ -1050,57 +1054,58 @@ export default function HomeScreen() {
                 </View>
               )}
 
-              <View style={styles.orderForm}>
-                <Text style={styles.orderFormTitle}>Your Details</Text>
-                
-                <View style={styles.inputContainer}>
-                  <User size={18} color={Colors.textMuted} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Your Name"
-                    placeholderTextColor={Colors.textMuted}
-                    value={orderName}
-                    onChangeText={setOrderName}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Phone size={18} color={Colors.textMuted} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Phone Number"
-                    placeholderTextColor={Colors.textMuted}
-                    value={orderPhone}
-                    onChangeText={setOrderPhone}
-                    keyboardType="phone-pad"
-                  />
+              <View style={styles.orderFormCompact}>
+                <Text style={styles.orderFormTitleCompact}>Your Details</Text>
+                <View style={styles.orderFormRow}>
+                  <View style={[styles.inputContainerCompact, { flex: 1, marginRight: 8 }]}>
+                    <User size={16} color={Colors.textMuted} style={styles.inputIconCompact} />
+                    <TextInput
+                      style={styles.inputCompact}
+                      placeholder="Your Name"
+                      placeholderTextColor={Colors.textMuted}
+                      value={orderName}
+                      onChangeText={setOrderName}
+                    />
+                  </View>
+                  <View style={[styles.inputContainerCompact, { flex: 1 }]}>
+                    <Phone size={16} color={Colors.textMuted} style={styles.inputIconCompact} />
+                    <TextInput
+                      style={styles.inputCompact}
+                      placeholder="Phone"
+                      placeholderTextColor={Colors.textMuted}
+                      value={orderPhone}
+                      onChangeText={setOrderPhone}
+                      keyboardType="phone-pad"
+                    />
+                  </View>
                 </View>
               </View>
 
-              <View style={styles.bankTransferSection}>
-                <View style={styles.bankTransferHeader}>
-                  <CreditCard size={18} color={Colors.primary} />
-                  <Text style={styles.bankTransferTitle}>Bank Transfer Details</Text>
+              <View style={styles.bankTransferSectionCompact}>
+                <View style={styles.bankTransferHeaderCompact}>
+                  <CreditCard size={16} color={Colors.primary} />
+                  <Text style={styles.bankTransferTitleCompact}>Payment Info</Text>
                 </View>
                 
-                <View style={styles.bankInfoCard}>
-                  <View style={styles.bankInfoRow}>
-                    <Text style={styles.bankInfoLabel}>Bank</Text>
-                    <Text style={styles.bankInfoValue}>{bankInfo.bankName}</Text>
+                <View style={styles.bankInfoCardCompact}>
+                  <View style={styles.bankInfoRowCompact}>
+                    <View style={styles.bankInfoItemCompact}>
+                      <Text style={styles.bankInfoLabelCompact}>Bank</Text>
+                      <Text style={styles.bankInfoValueCompact}>{bankInfo.bankName}</Text>
+                    </View>
+                    <View style={styles.bankInfoItemCompact}>
+                      <Text style={styles.bankInfoLabelCompact}>Account</Text>
+                      <Text style={styles.bankInfoValueCompact}>{bankInfo.accountName}</Text>
+                    </View>
                   </View>
-                  <View style={styles.bankInfoRow}>
-                    <Text style={styles.bankInfoLabel}>Account Name</Text>
-                    <Text style={styles.bankInfoValue}>{bankInfo.accountName}</Text>
-                  </View>
-                  <View style={styles.bankInfoRowAccount}>
-                    <View style={styles.bankInfoAccountLeft}>
-                      <Text style={styles.bankInfoLabel}>Account Number</Text>
-                      <Text style={styles.bankAccountNumber}>{bankInfo.accountNumber}</Text>
+                  <View style={styles.bankAccountRowCompact}>
+                    <View style={styles.bankAccountLeftCompact}>
+                      <Text style={styles.bankAccountNumberCompact}>{bankInfo.accountNumber}</Text>
                     </View>
                     <TouchableOpacity
                       style={[
-                        styles.copyButton,
-                        copiedAccount && styles.copyButtonSuccess,
+                        styles.copyButtonCompact,
+                        copiedAccount && styles.copyButtonSuccessCompact,
                       ]}
                       onPress={() => {
                         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -1113,83 +1118,70 @@ export default function HomeScreen() {
                       }}
                     >
                       {copiedAccount ? (
-                        <Check size={16} color={Colors.textPrimary} />
+                        <Check size={14} color={Colors.textPrimary} />
                       ) : (
-                        <Copy size={16} color={Colors.textPrimary} />
+                        <Copy size={14} color={Colors.textPrimary} />
                       )}
-                      <Text style={styles.copyButtonText}>
-                        {copiedAccount ? 'Copied' : 'Copy'}
-                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
 
-                <View style={styles.transferReferenceContainer}>
-                  <View style={styles.transferReferenceHeader}>
-                    <Paperclip size={16} color={Colors.textMuted} />
-                    <Text style={styles.transferReferenceLabel}>Upload Transfer Slip</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.uploadSlipButton}
-                    onPress={async () => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      const result = await ImagePicker.launchImageLibraryAsync({
-                        mediaTypes: ['images'],
-                        allowsEditing: false,
-                        quality: 0.6,
-                        base64: true,
-                      });
-                      if (!result.canceled && result.assets[0]) {
-                        const asset = result.assets[0];
-                        if (asset.base64) {
+                <TouchableOpacity
+                  style={styles.uploadSlipButtonCompact}
+                  onPress={async () => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    const result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ['images'],
+                      allowsEditing: false,
+                      quality: 0.6,
+                      base64: true,
+                    });
+                    if (!result.canceled && result.assets[0]) {
+                      const asset = result.assets[0];
+                      if (asset.base64) {
+                        const mimeType = asset.mimeType || 'image/jpeg';
+                        setTransferSlipUri(`data:${mimeType};base64,${asset.base64}`);
+                      } else if (Platform.OS !== 'web' && asset.uri) {
+                        try {
+                          const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+                            encoding: 'base64',
+                          });
                           const mimeType = asset.mimeType || 'image/jpeg';
-                          setTransferSlipUri(`data:${mimeType};base64,${asset.base64}`);
-                        } else if (Platform.OS !== 'web' && asset.uri) {
-                          try {
-                            const base64 = await FileSystem.readAsStringAsync(asset.uri, {
-                              encoding: 'base64',
-                            });
-                            const mimeType = asset.mimeType || 'image/jpeg';
-                            setTransferSlipUri(`data:${mimeType};base64,${base64}`);
-                          } catch (e) {
-                            console.error('Failed to convert image to base64:', e);
-                            Alert.alert('Error', 'Failed to process image. Please try again.');
-                          }
-                        } else {
-                          setTransferSlipUri(asset.uri);
+                          setTransferSlipUri(`data:${mimeType};base64,${base64}`);
+                        } catch (e) {
+                          console.error('Failed to convert image to base64:', e);
+                          Alert.alert('Error', 'Failed to process image. Please try again.');
                         }
+                      } else {
+                        setTransferSlipUri(asset.uri);
                       }
-                    }}
-                  >
-                    {transferSlipUri ? (
-                      <View style={styles.uploadedSlipContainer}>
-                        <Image
-                          source={{ uri: transferSlipUri }}
-                          style={styles.uploadedSlipImage}
-                          resizeMode="cover"
-                        />
-                        <TouchableOpacity
-                          style={styles.removeSlipButton}
-                          onPress={() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                            setTransferSlipUri(null);
-                          }}
-                        >
-                          <X size={14} color={Colors.textPrimary} />
-                        </TouchableOpacity>
-                      </View>
-                    ) : (
-                      <View style={styles.uploadSlipContent}>
-                        <Paperclip size={24} color={Colors.primary} />
-                        <Text style={styles.uploadSlipText}>Tap to upload transfer slip</Text>
-                        <Text style={styles.uploadSlipSubtext}>PNG, JPG up to 10MB</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                  <Text style={styles.transferReferenceNote}>
-                    After making payment, upload your transfer slip here
-                  </Text>
-                </View>
+                    }
+                  }}
+                >
+                  {transferSlipUri ? (
+                    <View style={styles.uploadedSlipContainerCompact}>
+                      <Image
+                        source={{ uri: transferSlipUri }}
+                        style={styles.uploadedSlipImageCompact}
+                        resizeMode="cover"
+                      />
+                      <TouchableOpacity
+                        style={styles.removeSlipButtonCompact}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setTransferSlipUri(null);
+                        }}
+                      >
+                        <X size={12} color={Colors.textPrimary} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.uploadSlipContentCompact}>
+                      <Paperclip size={18} color={Colors.primary} />
+                      <Text style={styles.uploadSlipTextCompact}>Upload Transfer Slip</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
 
               <TouchableOpacity
@@ -2086,6 +2078,36 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.textPrimary,
   },
+  orderFormCompact: {
+    marginBottom: 14,
+  },
+  orderFormTitleCompact: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  orderFormRow: {
+    flexDirection: 'row',
+  },
+  inputContainerCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: 10,
+  },
+  inputIconCompact: {
+    marginRight: 8,
+  },
+  inputCompact: {
+    flex: 1,
+    height: 42,
+    fontSize: 14,
+    color: Colors.textPrimary,
+  },
   submitButton: {
     borderRadius: 20,
     overflow: 'hidden',
@@ -2260,6 +2282,111 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: 10,
     lineHeight: 16,
+  },
+  bankTransferSectionCompact: {
+    marginBottom: 14,
+  },
+  bankTransferHeaderCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  bankTransferTitleCompact: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textSecondary,
+    marginLeft: 6,
+  },
+  bankInfoCardCompact: {
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  bankInfoRowCompact: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  bankInfoItemCompact: {
+    flex: 1,
+  },
+  bankInfoLabelCompact: {
+    fontSize: 10,
+    color: Colors.textMuted,
+    marginBottom: 2,
+  },
+  bankInfoValueCompact: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+  },
+  bankAccountRowCompact: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  bankAccountLeftCompact: {
+    flex: 1,
+  },
+  bankAccountNumberCompact: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+    letterSpacing: 0.5,
+  },
+  copyButtonCompact: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  copyButtonSuccessCompact: {
+    backgroundColor: Colors.success,
+  },
+  uploadSlipButtonCompact: {
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+    overflow: 'hidden',
+    marginTop: 10,
+  },
+  uploadSlipContentCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  uploadSlipTextCompact: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.textPrimary,
+  },
+  uploadedSlipContainerCompact: {
+    position: 'relative',
+  },
+  uploadedSlipImageCompact: {
+    width: '100%',
+    height: 100,
+  },
+  removeSlipButtonCompact: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   jerseyNameSection: {
     marginBottom: 22,
